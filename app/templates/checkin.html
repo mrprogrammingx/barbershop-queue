@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Check In{% endblock %}
+{% block content %}
+  <h1>Join the Queue</h1>
+  <form id="checkin-form">
+    <input type="text" name="name" placeholder="Full name" required>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="tel" name="phone" placeholder="Phone (optional)">
+    <button type="submit">Check In</button>
+  </form>
+  <p id="result"></p>
+
+  <script>
+    document.getElementById("checkin-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const payload = {
+        name: form.name.value,
+        email: form.email.value,
+        phone: form.phone.value || null,
+      };
+      const res = await fetch("/queue/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = document.getElementById("result");
+      if (res.ok) {
+        const data = await res.json();
+        result.textContent = `You're checked in! Your position is #${data.position}.`;
+        form.reset();
+      } else {
+        const err = await res.json();
+        result.textContent = `Error: ${err.detail}`;
+      }
+    });
+  </script>
+{% endblock %}

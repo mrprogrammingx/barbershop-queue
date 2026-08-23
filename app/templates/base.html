@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Barbershop Queue{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+    h1 { font-size: 1.5rem; }
+    form { display: flex; flex-direction: column; gap: 0.75rem; max-width: 360px; }
+    input { padding: 0.5rem; font-size: 1rem; }
+    button { padding: 0.6rem; font-size: 1rem; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+    .status { text-transform: capitalize; }
+    nav a { margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">Check-in</a>
+    <a href="/dashboard">Staff Dashboard</a>
+  </nav>
+  {% block content %}{% endblock %}
+</body>
+</html>

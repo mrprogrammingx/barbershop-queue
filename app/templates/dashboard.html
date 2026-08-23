@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block content %}
+  <h1>Staff Dashboard</h1>
+
+  <div>
+    <button id="call-next">Call Next</button>
+    <button id="toggle-shop">Toggle Shop Open/Closed</button>
+    <button id="reset-queue">Reset Queue</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="queue-body"></tbody>
+  </table>
+
+  <script>
+    async function loadQueue() {
+      const res = await fetch("/queue");
+      const entries = await res.json();
+      const body = document.getElementById("queue-body");
+      body.innerHTML = "";
+      for (const entry of entries) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${entry.position}</td>
+          <td>${entry.customer.name}</td>
+          <td>${entry.customer.email}</td>
+          <td class="status">${entry.status}</td>
+          <td>
+            <button data-id="${entry.id}" class="done-btn">Done</button>
+            <button data-id="${entry.id}" class="noshow-btn">No-show</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      }
+      document.querySelectorAll(".done-btn").forEach(btn =>
+        btn.addEventListener("click", () => updateEntry(btn.dataset.id, "done"))
+      );
+      document.querySelectorAll(".noshow-btn").forEach(btn =>
+        btn.addEventListener("click", () => updateEntry(btn.dataset.id, "no-show"))
+      );
+    }
+
+    async function updateEntry(id, action) {
+      await fetch(`/queue/${id}/${action}`, { method: "POST" });
+      loadQueue();
+    }
+
+    document.getElementById("call-next").addEventListener("click", async () => {
+      await fetch("/queue/call-next", { method: "POST" });
+      loadQueue();
+    });
+
+    document.getElementById("toggle-shop").addEventListener("click", async () => {
+      const res = await fetch("/admin/shop-status");
+      const status = await res.json();
+      await fetch("/admin/shop-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_open: !status.is_open }),
+      });
+      alert(`Shop is now ${!status.is_open ? "open" : "closed"}`);
+    });
+
+    document.getElementById("reset-queue").addEventListener("click", async () => {
+      if (confirm("Reset today's queue?")) {
+        await fetch("/admin/reset-queue", { method: "POST" });
+        loadQueue();
+      }
+    });
+
+    loadQueue();
+    setInterval(loadQueue, 5000);
+  </script>
+{% endblock %}

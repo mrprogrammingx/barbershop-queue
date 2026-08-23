@@ -31,3 +31,8 @@ def checkin_page(request: Request):
 @app.get("/dashboard")
 def dashboard_page(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
+
+
+@app.get("/history")
+def history_page(request: Request):
+    return templates.TemplateResponse("history.html", {"request": request})

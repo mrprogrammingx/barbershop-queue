@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Queue History{% endblock %}
+{% block content %}
+  <h1>Queue History</h1>
+
+  <div>
+    <label for="date-select">Date:</label>
+    <select id="date-select"></select>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Name</th><th>Email</th><th>Status</th><th>Checked In</th></tr>
+    </thead>
+    <tbody id="history-body"></tbody>
+  </table>
+  <p id="empty-message" style="display: none;">No queue entries for this date.</p>
+
+  <script>
+    async function loadDates() {
+      const res = await fetch("/queue/history/dates");
+      const dates = await res.json();
+      const select = document.getElementById("date-select");
+      select.innerHTML = "";
+      for (const d of dates) {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        select.appendChild(opt);
+      }
+      if (dates.length > 0) {
+        loadHistory(dates[0]);
+      } else {
+        document.getElementById("empty-message").style.display = "block";
+      }
+    }
+
+    async function loadHistory(queueDate) {
+      const res = await fetch(`/queue/history/${queueDate}`);
+      const entries = await res.json();
+      const body = document.getElementById("history-body");
+      const emptyMessage = document.getElementById("empty-message");
+      body.innerHTML = "";
+      emptyMessage.style.display = entries.length === 0 ? "block" : "none";
+      for (const entry of entries) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${entry.position}</td>
+          <td>${entry.customer.name}</td>
+          <td>${entry.customer.email}</td>
+          <td class="status">${entry.status}</td>
+          <td>${new Date(entry.created_at).toLocaleTimeString()}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    document.getElementById("date-select").addEventListener("change", (e) => {
+      loadHistory(e.target.value);
+    });
+
+    loadDates();
+  </script>
+{% endblock %}

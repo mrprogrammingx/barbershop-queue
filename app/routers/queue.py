@@ -69,6 +69,27 @@ def list_queue(db: Session = Depends(get_db)):
     )
 
 
+@router.get("/history/dates", response_model=list[date])
+def list_history_dates(db: Session = Depends(get_db)):
+    rows = (
+        db.query(QueueEntry.queue_date)
+        .distinct()
+        .order_by(QueueEntry.queue_date.desc())
+        .all()
+    )
+    return [row[0] for row in rows]
+
+
+@router.get("/history/{queue_date}", response_model=list[QueueEntryOut])
+def get_history_for_date(queue_date: date, db: Session = Depends(get_db)):
+    return (
+        db.query(QueueEntry)
+        .filter(QueueEntry.queue_date == queue_date)
+        .order_by(QueueEntry.position.asc())
+        .all()
+    )
+
+
 @router.get("/{entry_id}/position", response_model=QueueEntryOut)
 def get_position(entry_id: int, db: Session = Depends(get_db)):
     entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()

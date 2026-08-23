@@ -72,6 +72,15 @@ def _send_via_sendgrid(to_email: str, subject: str, body: str) -> bool:
     return True
 
 
+def send_checkin_confirmation(to_email: str, name: str, position: int) -> bool:
+    return send_email(
+        to_email,
+        subject="You're checked in!",
+        body=f"Hi {name}, you're checked in at the barbershop. Your position in line is #{position}. "
+        "We'll email you when you're next.",
+    )
+
+
 def send_next_notification(to_email: str, name: str) -> bool:
     return send_email(
         to_email,

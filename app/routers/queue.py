@@ -7,7 +7,11 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus
 from app.schemas import CheckInRequest, QueueEntryOut
-from app.services.email import send_next_notification, send_turn_notification
+from app.services.email import (
+    send_checkin_confirmation,
+    send_next_notification,
+    send_turn_notification,
+)
 
 router = APIRouter(prefix="/queue", tags=["queue"])
 
@@ -54,6 +58,9 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     db.add(entry)
     db.commit()
     db.refresh(entry)
+
+    send_checkin_confirmation(customer.email, customer.name, entry.position)
+
     return entry
 
 

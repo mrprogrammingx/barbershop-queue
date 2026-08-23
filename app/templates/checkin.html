@@ -4,8 +4,7 @@
   <h1>Join the Queue</h1>
   <form id="checkin-form">
     <input type="text" name="name" placeholder="Full name" required>
-    <input type="email" name="email" placeholder="Email" required>
-    <input type="tel" name="phone" placeholder="Phone (optional)">
+    <input type="tel" name="phone" placeholder="Phone" required>
     <button type="submit">Check In</button>
   </form>
   <p id="result"></p>
@@ -16,8 +15,7 @@
       const form = e.target;
       const payload = {
         name: form.name.value,
-        email: form.email.value,
-        phone: form.phone.value || null,
+        phone: form.phone.value,
       };
       const res = await fetch("/queue/checkin", {
         method: "POST",

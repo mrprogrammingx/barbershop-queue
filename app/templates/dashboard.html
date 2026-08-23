@@ -17,7 +17,7 @@
 
   <table>
     <thead>
-      <tr><th>#</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr>
+      <tr><th>#</th><th>Name</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
     </thead>
     <tbody id="queue-body"></tbody>
   </table>
@@ -33,7 +33,7 @@
         tr.innerHTML = `
           <td>${entry.position}</td>
           <td>${entry.customer.name}</td>
-          <td>${entry.customer.email}</td>
+          <td>${entry.customer.phone}</td>
           <td class="status">${entry.status}</td>
           <td>
             <button data-id="${entry.id}" class="done-btn">Done</button>

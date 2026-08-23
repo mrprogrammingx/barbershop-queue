@@ -1,15 +1,15 @@
 # Barbershop Queue
 
-A simple barbershop queue management system: customers check in online, get a daily queue
-position, and get emailed when they're next / when it's their turn. Staff manage the queue
-from a lightweight dashboard.
+A simple barbershop queue management system: customers check in online with name and phone,
+get a daily queue position, and the admin gets emailed whenever someone joins. Staff manage
+the queue from a lightweight dashboard.
 
 ## Stack
 
 - **FastAPI** — backend/API
 - **SQLAlchemy** — ORM, SQLite for dev, Postgres-ready (just change `DATABASE_URL`)
 - **Jinja2** — minimal server-rendered check-in page and staff dashboard
-- **Resend / SendGrid** — email notifications (pick one via `EMAIL_PROVIDER`)
+- **Resend / SendGrid** — admin email notifications (pick one via `EMAIL_PROVIDER`)
 - **Pydantic** — request/response schemas
 
 ## Project structure
@@ -24,7 +24,7 @@ app/
     queue.py           check-in, position, call-next, done, no-show
     admin.py            open/close, reset queue
   services/
-    email.py            send notification via Resend/SendGrid
+    email.py            notify admin via Resend/SendGrid when a customer checks in
   templates/            Jinja2 check-in page + staff dashboard
 tests/
 ```
@@ -58,17 +58,20 @@ uvicorn app.main:app --reload --port 8002
 
 ## Email notifications
 
-Set `EMAIL_PROVIDER` to `resend` or `sendgrid` and supply the matching API key
+Set `ADMIN_EMAIL` to the address that should be notified when a customer checks in. Set
+`EMAIL_PROVIDER` to `resend` or `sendgrid` and supply the matching API key
 (`RESEND_API_KEY` / `SENDGRID_API_KEY`) plus `EMAIL_FROM`. With `EMAIL_DRY_RUN=true`
-(the default), emails are logged instead of sent — handy for local development.
+(the default), emails are logged instead of sent — handy for local development. Customers
+are not emailed; only the admin address is notified.
 
 ## Core features
 
-1. **Customer check-in** — name, email, optional phone, joins today's queue.
+1. **Customer check-in** — name and phone (both required), joins today's queue.
 2. **Queue position tracking** — auto-incrementing position, reset daily.
 3. **Staff dashboard** — view current queue, call next, mark done/no-show.
-4. **Email notifications** — sent when a customer becomes "next" and when it's "their turn".
-5. **Admin controls** — toggle shop open/closed, reset today's queue.
+4. **Admin email notification** — sent to `ADMIN_EMAIL` whenever a customer checks in.
+5. **Admin controls** — toggle shop open/closed, set shop hours, reset today's queue.
+6. **Queue history** — browse past days' queue entries by date.
 
 ## Tests
 

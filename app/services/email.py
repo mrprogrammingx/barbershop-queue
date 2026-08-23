@@ -8,6 +8,7 @@ logger = logging.getLogger("barbershop.email")
 EMAIL_PROVIDER = os.getenv("EMAIL_PROVIDER", "resend").lower()
 EMAIL_FROM = os.getenv("EMAIL_FROM", "queue@yourbarbershop.com")
 EMAIL_DRY_RUN = os.getenv("EMAIL_DRY_RUN", "true").lower() == "true"
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
@@ -72,26 +73,14 @@ def _send_via_sendgrid(to_email: str, subject: str, body: str) -> bool:
     return True
 
 
-def send_checkin_confirmation(to_email: str, name: str, position: int) -> bool:
+def send_admin_checkin_notification(customer_name: str, customer_phone: str, position: int) -> bool:
+    """Notify the shop admin that a customer joined the queue. No-op if ADMIN_EMAIL is unset."""
+    if not ADMIN_EMAIL:
+        logger.warning("ADMIN_EMAIL is not set; skipping check-in notification")
+        return False
+
     return send_email(
-        to_email,
-        subject="You're checked in!",
-        body=f"Hi {name}, you're checked in at the barbershop. Your position in line is #{position}. "
-        "We'll email you when you're next.",
-    )
-
-
-def send_next_notification(to_email: str, name: str) -> bool:
-    return send_email(
-        to_email,
-        subject="You're up next!",
-        body=f"Hi {name}, you're next in line at the barbershop. Please head over now.",
-    )
-
-
-def send_turn_notification(to_email: str, name: str) -> bool:
-    return send_email(
-        to_email,
-        subject="It's your turn!",
-        body=f"Hi {name}, it's your turn! Please come to the chair.",
+        ADMIN_EMAIL,
+        subject="New customer checked in",
+        body=f"{customer_name} ({customer_phone}) joined the queue at position #{position}.",
     )

@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
@@ -7,11 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus
 from app.schemas import CheckInRequest, QueueEntryOut
-from app.services.email import (
-    send_checkin_confirmation,
-    send_next_notification,
-    send_turn_notification,
-)
+from app.services.email import send_admin_checkin_notification
 
 router = APIRouter(prefix="/queue", tags=["queue"])
 
@@ -32,13 +28,12 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     if not shop_status.is_open:
         raise HTTPException(status_code=400, detail="Shop is currently closed")
 
-    customer = db.query(Customer).filter(Customer.email == payload.email).first()
+    customer = db.query(Customer).filter(Customer.phone == payload.phone).first()
     if customer is None:
-        customer = Customer(name=payload.name, email=payload.email, phone=payload.phone)
+        customer = Customer(name=payload.name, phone=payload.phone)
         db.add(customer)
     else:
         customer.name = payload.name
-        customer.phone = payload.phone
     db.flush()
 
     today = date.today()
@@ -59,7 +54,7 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(entry)
 
-    send_checkin_confirmation(customer.email, customer.name, entry.position)
+    send_admin_checkin_notification(customer.name, customer.phone, entry.position)
 
     return entry
 
@@ -128,18 +123,15 @@ def call_next(db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No customers waiting")
 
     entry.status = QueueStatus.in_progress
-    entry.turn_notified_at = datetime.utcnow()
     db.commit()
     db.refresh(entry)
 
-    send_turn_notification(entry.customer.email, entry.customer.name)
-
-    _notify_upcoming_next(db, today)
+    _promote_upcoming_next(db, today)
 
     return entry
 
 
-def _notify_upcoming_next(db: Session, today: date) -> None:
+def _promote_upcoming_next(db: Session, today: date) -> None:
     upcoming = (
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == today, QueueEntry.status == QueueStatus.waiting)
@@ -150,9 +142,7 @@ def _notify_upcoming_next(db: Session, today: date) -> None:
         return
 
     upcoming.status = QueueStatus.next
-    upcoming.next_notified_at = datetime.utcnow()
     db.commit()
-    send_next_notification(upcoming.customer.email, upcoming.customer.name)
 
 
 @router.post("/{entry_id}/done", response_model=QueueEntryOut)
@@ -184,6 +174,6 @@ def mark_no_show(entry_id: int, db: Session = Depends(get_db)):
         .first()
     )
     if in_progress is None:
-        _notify_upcoming_next(db, today)
+        _promote_upcoming_next(db, today)
 
     return entry

@@ -13,7 +13,7 @@ client = TestClient(app)
 def test_checkin_and_position():
     response = client.post(
         "/queue/checkin",
-        json={"name": "Alice", "email": "alice@example.com", "phone": None},
+        json={"name": "Alice", "phone": "555-0100"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -25,7 +25,7 @@ def test_checkin_and_position():
 def test_call_next():
     client.post(
         "/queue/checkin",
-        json={"name": "Bob", "email": "bob@example.com", "phone": None},
+        json={"name": "Bob", "phone": "555-0101"},
     )
     response = client.post("/queue/call-next")
     assert response.status_code in (200, 400)

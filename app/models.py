@@ -29,8 +29,7 @@ class Customer(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    email = Column(String, nullable=False, unique=True, index=True)
-    phone = Column(String, nullable=True)
+    phone = Column(String, nullable=False, unique=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     queue_entries = relationship("QueueEntry", back_populates="customer")
@@ -44,9 +43,6 @@ class QueueEntry(Base):
     queue_date = Column(Date, default=date.today, index=True)
     position = Column(Integer, nullable=False)
     status = Column(Enum(QueueStatus), default=QueueStatus.waiting, nullable=False)
-
-    next_notified_at = Column(DateTime, nullable=True)
-    turn_notified_at = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

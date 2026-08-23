@@ -4,9 +4,10 @@
   <h1>Queue History</h1>
 
   <div>
-    <label for="date-select">Date:</label>
-    <select id="date-select"></select>
+    <label for="date-picker">Date:</label>
+    <input type="date" id="date-picker">
   </div>
+  <p id="available-dates"></p>
 
   <table>
     <thead>
@@ -20,17 +21,16 @@
     async function loadDates() {
       const res = await fetch("/queue/history/dates");
       const dates = await res.json();
-      const select = document.getElementById("date-select");
-      select.innerHTML = "";
-      for (const d of dates) {
-        const opt = document.createElement("option");
-        opt.value = d;
-        opt.textContent = d;
-        select.appendChild(opt);
-      }
+      const picker = document.getElementById("date-picker");
+      const availableDates = document.getElementById("available-dates");
+
       if (dates.length > 0) {
+        picker.value = dates[0];
+        availableDates.textContent = "Dates with history: " + dates.join(", ");
         loadHistory(dates[0]);
       } else {
+        picker.value = new Date().toISOString().slice(0, 10);
+        availableDates.textContent = "No past queue history yet.";
         document.getElementById("empty-message").style.display = "block";
       }
     }
@@ -55,8 +55,10 @@
       }
     }
 
-    document.getElementById("date-select").addEventListener("change", (e) => {
-      loadHistory(e.target.value);
+    document.getElementById("date-picker").addEventListener("change", (e) => {
+      if (e.target.value) {
+        loadHistory(e.target.value);
+      }
     });
 
     loadDates();

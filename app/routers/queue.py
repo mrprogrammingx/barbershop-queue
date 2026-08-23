@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus
-from app.schemas import CheckInRequest, QueueEntryOut
+from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate
 from app.services.email import send_admin_checkin_notification
 
 router = APIRouter(prefix="/queue", tags=["queue"])
@@ -49,12 +49,13 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
         queue_date=today,
         position=next_position,
         status=QueueStatus.waiting,
+        note=payload.note,
     )
     db.add(entry)
     db.commit()
     db.refresh(entry)
 
-    send_admin_checkin_notification(customer.name, customer.phone, entry.position)
+    send_admin_checkin_notification(customer.name, customer.phone, entry.position, entry.note)
 
     return entry
 
@@ -97,6 +98,18 @@ def get_position(entry_id: int, db: Session = Depends(get_db)):
     entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()
     if entry is None:
         raise HTTPException(status_code=404, detail="Queue entry not found")
+    return entry
+
+
+@router.post("/{entry_id}/note", response_model=QueueEntryOut)
+def set_note(entry_id: int, payload: QueueNoteUpdate, db: Session = Depends(get_db)):
+    entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Queue entry not found")
+
+    entry.note = payload.note
+    db.commit()
+    db.refresh(entry)
     return entry
 
 

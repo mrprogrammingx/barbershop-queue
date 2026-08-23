@@ -5,6 +5,7 @@
   <form id="checkin-form">
     <input type="text" name="name" placeholder="Full name" required>
     <input type="tel" name="phone" placeholder="Phone" required>
+    <input type="text" name="note" placeholder="Note (optional, e.g. requested style)">
     <button type="submit">Check In</button>
   </form>
   <p id="result"></p>
@@ -16,6 +17,7 @@
       const payload = {
         name: form.name.value,
         phone: form.phone.value,
+        note: form.note.value || null,
       };
       const res = await fetch("/queue/checkin", {
         method: "POST",

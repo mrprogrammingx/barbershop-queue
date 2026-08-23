@@ -17,13 +17,16 @@
 
   <table>
     <thead>
-      <tr><th>#</th><th>Name</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
+      <tr><th>#</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Actions</th></tr>
     </thead>
     <tbody id="queue-body"></tbody>
   </table>
 
   <script>
     async function loadQueue() {
+      if (document.activeElement && document.activeElement.classList.contains("note-input")) {
+        return;
+      }
       const res = await fetch("/queue");
       const entries = await res.json();
       const body = document.getElementById("queue-body");
@@ -34,12 +37,14 @@
           <td>${entry.position}</td>
           <td>${entry.customer.name}</td>
           <td>${entry.customer.phone}</td>
+          <td><input type="text" class="note-input" data-id="${entry.id}" placeholder="Note"></td>
           <td class="status">${entry.status}</td>
           <td>
             <button data-id="${entry.id}" class="done-btn">Done</button>
             <button data-id="${entry.id}" class="noshow-btn">No-show</button>
           </td>
         `;
+        tr.querySelector(".note-input").value = entry.note || "";
         body.appendChild(tr);
       }
       document.querySelectorAll(".done-btn").forEach(btn =>
@@ -48,6 +53,17 @@
       document.querySelectorAll(".noshow-btn").forEach(btn =>
         btn.addEventListener("click", () => updateEntry(btn.dataset.id, "no-show"))
       );
+      document.querySelectorAll(".note-input").forEach(input =>
+        input.addEventListener("blur", () => saveNote(input.dataset.id, input.value))
+      );
+    }
+
+    async function saveNote(id, note) {
+      await fetch(`/queue/${id}/note`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: note || null }),
+      });
     }
 
     async function updateEntry(id, action) {

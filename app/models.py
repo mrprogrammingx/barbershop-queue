@@ -5,6 +5,7 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
+    Text,
     DateTime,
     Date,
     Enum,
@@ -43,6 +44,7 @@ class QueueEntry(Base):
     queue_date = Column(Date, default=date.today, index=True)
     position = Column(Integer, nullable=False)
     status = Column(Enum(QueueStatus), default=QueueStatus.waiting, nullable=False)
+    note = Column(Text, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

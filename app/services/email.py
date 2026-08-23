@@ -73,14 +73,20 @@ def _send_via_sendgrid(to_email: str, subject: str, body: str) -> bool:
     return True
 
 
-def send_admin_checkin_notification(customer_name: str, customer_phone: str, position: int) -> bool:
+def send_admin_checkin_notification(
+    customer_name: str, customer_phone: str, position: int, note: str | None = None
+) -> bool:
     """Notify the shop admin that a customer joined the queue. No-op if ADMIN_EMAIL is unset."""
     if not ADMIN_EMAIL:
         logger.warning("ADMIN_EMAIL is not set; skipping check-in notification")
         return False
 
+    body = f"{customer_name} ({customer_phone}) joined the queue at position #{position}."
+    if note:
+        body += f" Note: {note}"
+
     return send_email(
         ADMIN_EMAIL,
         subject="New customer checked in",
-        body=f"{customer_name} ({customer_phone}) joined the queue at position #{position}.",
+        body=body,
     )

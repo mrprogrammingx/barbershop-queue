@@ -9,6 +9,7 @@ from app.models import QueueStatus
 class CheckInRequest(BaseModel):
     name: str
     phone: str
+    note: Optional[str] = None
 
 
 class CustomerOut(BaseModel):
@@ -26,12 +27,17 @@ class QueueEntryOut(BaseModel):
     queue_date: date
     position: int
     status: QueueStatus
+    note: Optional[str] = None
     created_at: datetime
     customer: CustomerOut
 
 
 class QueueStatusUpdate(BaseModel):
     status: QueueStatus
+
+
+class QueueNoteUpdate(BaseModel):
+    note: Optional[str] = None
 
 
 class ShopStatusOut(BaseModel):

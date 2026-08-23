@@ -40,7 +40,12 @@ class ShopStatusOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     is_open: bool
+    hours: Optional[str] = None
 
 
 class ShopStatusUpdate(BaseModel):
     is_open: bool
+
+
+class ShopHoursUpdate(BaseModel):
+    hours: Optional[str] = None

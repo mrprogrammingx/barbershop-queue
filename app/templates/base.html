@@ -23,6 +23,7 @@
     }
     #shop-status-banner.open { display: block; background: #e6f4ea; color: #1e7e34; }
     #shop-status-banner.closed { display: block; background: #fde8e8; color: #b02a2a; }
+    #shop-status-banner .hours { display: block; font-weight: 400; font-size: 0.9rem; margin-top: 0.15rem; }
   </style>
 </head>
 <body>
@@ -38,7 +39,14 @@
         const res = await fetch("/admin/shop-status");
         const data = await res.json();
         const banner = document.getElementById("shop-status-banner");
-        banner.textContent = data.is_open ? "Shop is open" : "Shop is closed";
+        banner.textContent = "";
+        banner.append(document.createTextNode(data.is_open ? "Shop is open" : "Shop is closed"));
+        if (data.hours) {
+          const hoursEl = document.createElement("span");
+          hoursEl.className = "hours";
+          hoursEl.textContent = data.hours;
+          banner.append(hoursEl);
+        }
         banner.className = data.is_open ? "open" : "closed";
       } catch (e) {
         // ignore

@@ -9,6 +9,12 @@
     <button id="reset-queue">Reset Queue</button>
   </div>
 
+  <h2>Shop Hours</h2>
+  <form id="hours-form">
+    <input type="text" id="hours-input" placeholder="e.g. Mon-Fri 9am-6pm, Sat 10am-4pm, Sun closed">
+    <button type="submit">Save Hours</button>
+  </form>
+
   <table>
     <thead>
       <tr><th>#</th><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr>
@@ -72,7 +78,24 @@
       }
     });
 
+    async function loadHours() {
+      const res = await fetch("/admin/shop-status");
+      const status = await res.json();
+      document.getElementById("hours-input").value = status.hours || "";
+    }
+
+    document.getElementById("hours-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const hours = document.getElementById("hours-input").value;
+      await fetch("/admin/hours", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hours }),
+      });
+    });
+
     loadQueue();
+    loadHours();
     setInterval(loadQueue, 5000);
   </script>
 {% endblock %}

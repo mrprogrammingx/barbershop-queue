@@ -61,4 +61,5 @@ class ShopStatus(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     is_open = Column(Boolean, default=True, nullable=False)
+    hours = Column(String, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

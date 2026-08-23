@@ -48,13 +48,13 @@ cp .env.example .env
 ## Run
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8002
 ```
 
-- Check-in page: http://localhost:8000/
-- Staff dashboard: http://localhost:8000/dashboard
-- Health check: http://localhost:8000/health
-- API docs: http://localhost:8000/docs
+- Check-in page: http://localhost:8002/
+- Staff dashboard: http://localhost:8002/dashboard
+- Health check: http://localhost:8002/health
+- API docs: http://localhost:8002/docs
 
 ## Email notifications
 

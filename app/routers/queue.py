@@ -28,8 +28,13 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     if not shop_status.is_open:
         raise HTTPException(status_code=400, detail="Shop is currently closed")
 
-    customer = Customer(name=payload.name, email=payload.email, phone=payload.phone)
-    db.add(customer)
+    customer = db.query(Customer).filter(Customer.email == payload.email).first()
+    if customer is None:
+        customer = Customer(name=payload.name, email=payload.email, phone=payload.phone)
+        db.add(customer)
+    else:
+        customer.name = payload.name
+        customer.phone = payload.phone
     db.flush()
 
     today = date.today()

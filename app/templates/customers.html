@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+  <h1>Customers</h1>
+
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Phone</th><th>Visits</th><th>Signed Up</th></tr>
+    </thead>
+    <tbody id="customers-body"></tbody>
+  </table>
+  <p id="empty-message" style="display: none;">No customers have checked in yet.</p>
+
+  <script>
+    async function loadCustomers() {
+      const res = await fetch("/queue/customers");
+      const customers = await res.json();
+      const body = document.getElementById("customers-body");
+      const emptyMessage = document.getElementById("empty-message");
+      body.innerHTML = "";
+      emptyMessage.style.display = customers.length === 0 ? "block" : "none";
+      for (const customer of customers) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${customer.name}</td>
+          <td>${customer.phone}</td>
+          <td>${customer.visit_count}</td>
+          <td>${new Date(customer.created_at).toLocaleDateString()}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    loadCustomers();
+  </script>
+{% endblock %}

@@ -20,6 +20,16 @@ class CustomerOut(BaseModel):
     phone: str
 
 
+class CustomerListOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    phone: str
+    created_at: datetime
+    visit_count: int
+
+
 class QueueEntryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

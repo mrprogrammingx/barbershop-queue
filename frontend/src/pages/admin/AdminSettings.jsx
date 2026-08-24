@@ -56,8 +56,15 @@ export default function AdminSettings() {
   }
 
   async function refreshSlots() {
-    const data = await getAvailableTimesAdmin(blockDate);
-    setSlots(data);
+    try {
+      const data = await getAvailableTimesAdmin(blockDate);
+      setSlots(data);
+    } catch (err) {
+      setSlots([]);
+      if (blockDate < todayIso()) {
+        setBlockDate(todayIso());
+      }
+    }
   }
 
   useEffect(() => {

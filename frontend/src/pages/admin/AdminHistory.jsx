@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getHistoryDates, getHistoryForDate } from "../../lib/adminApi";
-import { Table } from "../../components/admin/ui";
+import { EntryCard, EntryRow, StatusPill, Table } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
 
 function todayIso() {
@@ -36,19 +36,42 @@ export default function AdminHistory() {
       {entries.length === 0 ? (
         <p className="text-cream/50">No queue entries for this date.</p>
       ) : (
-        <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In"]}>
-          {entries.map((entry) => (
-            <tr key={entry.id} className="border-b border-charcoal-lighter">
-              <td className="px-3 py-2">{entry.position}</td>
-              <td className="px-3 py-2">{entry.appointment_time.slice(0, 5)}</td>
-              <td className="px-3 py-2">{entry.customer.name}</td>
-              <td className="px-3 py-2">{entry.customer.phone}</td>
-              <td className="px-3 py-2">{entry.note || ""}</td>
-              <td className="px-3 py-2 capitalize">{entry.status.replace("_", " ")}</td>
-              <td className="px-3 py-2">{new Date(entry.created_at).toLocaleTimeString()}</td>
-            </tr>
-          ))}
-        </Table>
+        <>
+          <div className="hidden md:block">
+            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In"]}>
+              {entries.map((entry) => (
+                <tr key={entry.id} className="border-b border-charcoal-lighter">
+                  <td className="px-3 py-2">{entry.position}</td>
+                  <td className="px-3 py-2">{entry.appointment_time.slice(0, 5)}</td>
+                  <td className="px-3 py-2">{entry.customer.name}</td>
+                  <td className="px-3 py-2">{entry.customer.phone}</td>
+                  <td className="px-3 py-2">{entry.note || ""}</td>
+                  <td className="px-3 py-2">
+                    <StatusPill status={entry.status} />
+                  </td>
+                  <td className="px-3 py-2">{new Date(entry.created_at).toLocaleTimeString()}</td>
+                </tr>
+              ))}
+            </Table>
+          </div>
+
+          <div className="flex flex-col gap-4 md:hidden">
+            {entries.map((entry) => (
+              <EntryCard
+                key={entry.id}
+                title={`#${entry.position} · ${entry.appointment_time.slice(0, 5)}`}
+              >
+                <EntryRow label="Name">{entry.customer.name}</EntryRow>
+                <EntryRow label="Phone">{entry.customer.phone}</EntryRow>
+                {entry.note && <EntryRow label="Note">{entry.note}</EntryRow>}
+                <EntryRow label="Status">
+                  <StatusPill status={entry.status} />
+                </EntryRow>
+                <EntryRow label="Checked In">{new Date(entry.created_at).toLocaleTimeString()}</EntryRow>
+              </EntryCard>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

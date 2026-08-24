@@ -38,6 +38,47 @@ export function Toggle({ checked, onChange, label, disabled = false }) {
   );
 }
 
+const STATUS_STYLES = {
+  waiting: "text-gold",
+  called: "text-blue-400",
+  in_progress: "text-blue-400",
+  done: "text-emerald-400",
+  no_show: "text-red-400",
+};
+
+export function StatusPill({ status }) {
+  return (
+    <span className={`text-sm font-medium capitalize ${STATUS_STYLES[status] || "text-cream"}`}>
+      {status.replace("_", " ")}
+    </span>
+  );
+}
+
+export function EntryCard({ title, subtitle, headerActions, children, footer }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-charcoal-lighter bg-charcoal">
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <div>
+          <div className="font-semibold text-cream">{title}</div>
+          {subtitle && <div className="text-xs text-cream/50">{subtitle}</div>}
+        </div>
+        {headerActions && <div className="flex items-center gap-2">{headerActions}</div>}
+      </div>
+      <div className="border-t border-charcoal-lighter">{children}</div>
+      {footer}
+    </div>
+  );
+}
+
+export function EntryRow({ label, children }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-charcoal-lighter px-4 py-2.5 last:border-b-0">
+      <span className="text-sm text-cream/50">{label}</span>
+      <span className="min-w-0 flex-1 text-right text-sm text-cream">{children}</span>
+    </div>
+  );
+}
+
 export function Table({ columns, children }) {
   return (
     <div className="overflow-x-auto">

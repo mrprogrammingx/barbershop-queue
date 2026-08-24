@@ -4,6 +4,10 @@ A simple barbershop queue management system: customers pick an available appoint
 check in online with name and phone, and the admin gets emailed whenever someone joins. Staff
 manage the queue and appointment slot settings from a lightweight dashboard.
 
+The `frontend/` folder holds a separate, animated marketing site (React + Tailwind + Framer
+Motion) with Hero/Services/Barbers/Gallery/Instagram/Testimonials sections and a real booking
+form wired to this same API — see [frontend/README.md](frontend/README.md).
+
 ## Stack
 
 - **FastAPI** — backend/API
@@ -11,6 +15,8 @@ manage the queue and appointment slot settings from a lightweight dashboard.
 - **Jinja2** — minimal server-rendered check-in page and staff dashboard
 - **Resend / SendGrid** — admin email notifications (pick one via `EMAIL_PROVIDER`)
 - **Pydantic** — request/response schemas
+- **React + Vite** (in `frontend/`) — the public-facing marketing/booking site, calling this
+  API over HTTP (see `CORS_ORIGINS` below)
 
 ## Project structure
 
@@ -64,6 +70,12 @@ admin login. Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`, and a random
 Login is disabled while `ADMIN_PASSWORD` is blank. The check-in page (browsing times,
 booking, and looking up "My Bookings" by phone) stays fully public — no login required.
 
+When deploying (e.g. on a VPS), set real values for `ADMIN_USERNAME`/`ADMIN_PASSWORD`/
+`SESSION_SECRET_KEY` in the server's `.env` and serve the app over HTTPS (e.g. behind
+nginx/Caddy with a TLS cert). Set `SESSION_HTTPS_ONLY=true` in that `.env` so the session
+cookie is only ever sent over HTTPS. Then log in at `https://yourdomain.com/login` with
+your admin credentials, same as locally.
+
 ## Email notifications
 
 Set `ADMIN_EMAIL` to the address that should be notified when a customer checks in. Set
@@ -71,6 +83,13 @@ Set `ADMIN_EMAIL` to the address that should be notified when a customer checks 
 (`RESEND_API_KEY` / `SENDGRID_API_KEY`) plus `EMAIL_FROM`. With `EMAIL_DRY_RUN=true`
 (the default), emails are logged instead of sent — handy for local development. Customers
 are not emailed; only the admin address is notified.
+
+## Frontend (React marketing site)
+
+`frontend/` is a separate Vite + React app — see [frontend/README.md](frontend/README.md) for
+setup. It calls this API directly for live availability and booking, so when running it
+against a non-default origin (deployed, or a different dev port), set `CORS_ORIGINS` here to
+match.
 
 ## Core features
 

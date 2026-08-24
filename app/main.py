@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, Request, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -18,10 +19,25 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Barbershop Queue")
 
+cors_origins = [origin for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if origin]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 session_secret = os.getenv("SESSION_SECRET_KEY")
 if not session_secret:
     session_secret = secrets.token_hex(32)
-app.add_middleware(SessionMiddleware, secret_key=session_secret, session_cookie="barbershop_session")
+session_https_only = os.getenv("SESSION_HTTPS_ONLY", "false").lower() == "true"
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=session_secret,
+    session_cookie="barbershop_session",
+    https_only=session_https_only,
+)
 
 templates = Jinja2Templates(directory="app/templates")
 

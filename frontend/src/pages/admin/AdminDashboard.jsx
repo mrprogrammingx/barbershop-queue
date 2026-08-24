@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, X } from "lucide-react";
 import { callNext, getQueue, markDone, markNoShow, resetQueue, setNote } from "../../lib/adminApi";
-import { EntryCard, EntryRow, StatusPill, Table, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
+import { EntryCard, EntryRow, StatusSelect, Table, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
 import { useAdminUI } from "../../components/admin/AdminUIContext";
 import DatePickerField from "../../components/admin/DatePickerField";
 
@@ -37,9 +36,9 @@ export default function AdminDashboard() {
     return () => clearInterval(interval);
   }, [loadQueue]);
 
-  async function handleStatus(id, action) {
-    if (action === "done") await markDone(id);
-    else await markNoShow(id);
+  async function handleStatusChange(id, newStatus) {
+    if (newStatus === "done") await markDone(id);
+    else if (newStatus === "no_show") await markNoShow(id);
     loadQueue();
   }
 
@@ -85,7 +84,7 @@ export default function AdminDashboard() {
       ) : (
         <>
           <div className="hidden md:block">
-            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Actions"]}>
+            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status"]}>
               {entries.map((entry) => (
                 <tr key={entry.id} className="border-b border-charcoal-lighter">
                   <td className="px-3 py-2">{entry.position}</td>
@@ -106,17 +105,7 @@ export default function AdminDashboard() {
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <StatusPill status={entry.status} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => handleStatus(entry.id, "done")} className={buttonClass}>
-                        Done
-                      </button>
-                      <button type="button" onClick={() => handleStatus(entry.id, "no-show")} className={buttonOutlineClass}>
-                        No-show
-                      </button>
-                    </div>
+                    <StatusSelect status={entry.status} onChange={(next) => handleStatusChange(entry.id, next)} />
                   </td>
                 </tr>
               ))}
@@ -128,26 +117,6 @@ export default function AdminDashboard() {
               <EntryCard
                 key={entry.id}
                 title={`#${entry.position} · ${entry.appointment_time.slice(0, 5)}`}
-                headerActions={
-                  <>
-                    <button
-                      type="button"
-                      aria-label="Mark done"
-                      onClick={() => handleStatus(entry.id, "done")}
-                      className="rounded-full border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10"
-                    >
-                      <Check size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Mark no-show"
-                      onClick={() => handleStatus(entry.id, "no-show")}
-                      className="rounded-full border border-red-500/40 p-1.5 text-red-400 transition-colors hover:bg-red-500/10"
-                    >
-                      <X size={16} />
-                    </button>
-                  </>
-                }
                 footer={
                   <div className="border-t border-charcoal-lighter px-4 py-3">
                     <input
@@ -167,7 +136,7 @@ export default function AdminDashboard() {
                 <EntryRow label="Name">{entry.customer.name}</EntryRow>
                 <EntryRow label="Phone">{entry.customer.phone}</EntryRow>
                 <EntryRow label="Status">
-                  <StatusPill status={entry.status} />
+                  <StatusSelect status={entry.status} onChange={(next) => handleStatusChange(entry.id, next)} />
                 </EntryRow>
               </EntryCard>
             ))}

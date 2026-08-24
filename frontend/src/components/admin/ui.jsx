@@ -46,11 +46,43 @@ const STATUS_STYLES = {
   no_show: "text-red-400",
 };
 
+const STATUS_LABELS = {
+  waiting: "Waiting",
+  next: "Next",
+  in_progress: "In Progress",
+  done: "Done",
+  no_show: "No Show",
+};
+
 export function StatusPill({ status }) {
   return (
     <span className={`text-sm font-medium capitalize ${STATUS_STYLES[status] || "text-cream"}`}>
       {status.replace("_", " ")}
     </span>
+  );
+}
+
+// Looks like a plain status pill, but is a native <select> underneath so tapping
+// the status itself opens the change options — no separate action buttons needed.
+export function StatusSelect({ status, onChange }) {
+  const actionable = ["done", "no_show"];
+  const options = actionable.includes(status) ? actionable : [status, ...actionable];
+  return (
+    <select
+      value={status}
+      onChange={(e) => {
+        if (e.target.value !== status) onChange(e.target.value);
+      }}
+      className={`cursor-pointer appearance-none bg-transparent text-right text-sm font-medium capitalize focus:outline-none ${
+        STATUS_STYLES[status] || "text-cream"
+      }`}
+    >
+      {options.map((value) => (
+        <option key={value} value={value} className="bg-charcoal text-cream">
+          {STATUS_LABELS[value] || value}
+        </option>
+      ))}
+    </select>
   );
 }
 

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
 import { getHistoryDates, getHistoryForDate, markDone, markNoShow } from "../../lib/adminApi";
-import { EntryCard, EntryRow, StatusPill, Table } from "../../components/admin/ui";
+import { EntryCard, EntryRow, StatusPill, StatusSelect, Table } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
 
 function todayIso() {
@@ -27,9 +26,9 @@ export default function AdminHistory() {
     loadHistory();
   }, [loadHistory]);
 
-  async function handleStatus(id, action) {
-    if (action === "done") await markDone(id);
-    else await markNoShow(id);
+  async function handleStatusChange(id, newStatus) {
+    if (newStatus === "done") await markDone(id);
+    else if (newStatus === "no_show") await markNoShow(id);
     loadHistory();
   }
 
@@ -50,7 +49,7 @@ export default function AdminHistory() {
       ) : (
         <>
           <div className="hidden md:block">
-            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In", ...(isToday ? ["Actions"] : [])]}>
+            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In"]}>
               {entries.map((entry) => (
                 <tr key={entry.id} className="border-b border-charcoal-lighter">
                   <td className="px-3 py-2">{entry.position}</td>
@@ -59,31 +58,13 @@ export default function AdminHistory() {
                   <td className="px-3 py-2">{entry.customer.phone}</td>
                   <td className="px-3 py-2">{entry.note || ""}</td>
                   <td className="px-3 py-2">
-                    <StatusPill status={entry.status} />
+                    {isToday ? (
+                      <StatusSelect status={entry.status} onChange={(next) => handleStatusChange(entry.id, next)} />
+                    ) : (
+                      <StatusPill status={entry.status} />
+                    )}
                   </td>
                   <td className="px-3 py-2">{new Date(entry.created_at).toLocaleTimeString()}</td>
-                  {isToday && (
-                    <td className="px-3 py-2">
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          aria-label="Mark done"
-                          onClick={() => handleStatus(entry.id, "done")}
-                          className="rounded-full border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10"
-                        >
-                          <Check size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label="Mark no-show"
-                          onClick={() => handleStatus(entry.id, "no-show")}
-                          className="rounded-full border border-red-500/40 p-1.5 text-red-400 transition-colors hover:bg-red-500/10"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  )}
                 </tr>
               ))}
             </Table>
@@ -91,37 +72,16 @@ export default function AdminHistory() {
 
           <div className="flex flex-col gap-4 md:hidden">
             {entries.map((entry) => (
-              <EntryCard
-                key={entry.id}
-                title={`#${entry.position} · ${entry.appointment_time.slice(0, 5)}`}
-                headerActions={
-                  isToday && (
-                    <>
-                      <button
-                        type="button"
-                        aria-label="Mark done"
-                        onClick={() => handleStatus(entry.id, "done")}
-                        className="rounded-full border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10"
-                      >
-                        <Check size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Mark no-show"
-                        onClick={() => handleStatus(entry.id, "no-show")}
-                        className="rounded-full border border-red-500/40 p-1.5 text-red-400 transition-colors hover:bg-red-500/10"
-                      >
-                        <X size={16} />
-                      </button>
-                    </>
-                  )
-                }
-              >
+              <EntryCard key={entry.id} title={`#${entry.position} · ${entry.appointment_time.slice(0, 5)}`}>
                 <EntryRow label="Name">{entry.customer.name}</EntryRow>
                 <EntryRow label="Phone">{entry.customer.phone}</EntryRow>
                 {entry.note && <EntryRow label="Note">{entry.note}</EntryRow>}
                 <EntryRow label="Status">
-                  <StatusPill status={entry.status} />
+                  {isToday ? (
+                    <StatusSelect status={entry.status} onChange={(next) => handleStatusChange(entry.id, next)} />
+                  ) : (
+                    <StatusPill status={entry.status} />
+                  )}
                 </EntryRow>
                 <EntryRow label="Checked In">{new Date(entry.created_at).toLocaleTimeString()}</EntryRow>
               </EntryCard>

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, date, time
 from typing import Optional
 
@@ -7,6 +8,16 @@ from app.models import QueueStatus
 
 WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
+PHONE_PATTERN = re.compile(r"^\+?[0-9\s\-()]{7,20}$")
+
+
+def validate_phone(value: str) -> str:
+    value = value.strip()
+    digit_count = sum(char.isdigit() for char in value)
+    if not PHONE_PATTERN.match(value) or digit_count < 7:
+        raise ValueError("Enter a valid phone number (at least 7 digits)")
+    return value
+
 
 class CheckInRequest(BaseModel):
     name: str
@@ -14,6 +25,11 @@ class CheckInRequest(BaseModel):
     appointment_date: date
     appointment_time: time
     note: Optional[str] = None
+
+    @field_validator("phone")
+    @classmethod
+    def _validate_phone(cls, value):
+        return validate_phone(value)
 
 
 class CustomerOut(BaseModel):

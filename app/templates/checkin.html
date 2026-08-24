@@ -14,7 +14,7 @@
 
   <form id="checkin-form">
     <input type="text" name="name" placeholder="Full name" required>
-    <input type="tel" name="phone" placeholder="Phone" required>
+    <input type="tel" name="phone" placeholder="Phone" pattern="^\+?[0-9\s\-()]{7,20}$" title="Enter a valid phone number (at least 7 digits)" required>
     <input type="text" name="note" placeholder="Note (optional, e.g. requested style)">
     <button type="submit" id="submit-btn" disabled>Check In</button>
   </form>
@@ -145,10 +145,17 @@
         loadSlots();
       } else {
         const err = await res.json();
-        result.textContent = `Error: ${err.detail}`;
+        result.textContent = `Error: ${formatErrorDetail(err.detail)}`;
         loadSlots();
       }
     });
+
+    function formatErrorDetail(detail) {
+      if (Array.isArray(detail)) {
+        return detail.map(item => item.msg || JSON.stringify(item)).join("; ");
+      }
+      return detail;
+    }
 
     async function initDatePicker() {
       const picker = document.getElementById("date-picker");

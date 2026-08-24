@@ -2,22 +2,67 @@
 {% block title %}Check In{% endblock %}
 {% block content %}
   <h1>Join the Queue</h1>
+
+  <h2>Available Times</h2>
+  <div id="slots" class="slots"></div>
+  <p id="slots-message"></p>
+
   <form id="checkin-form">
     <input type="text" name="name" placeholder="Full name" required>
     <input type="tel" name="phone" placeholder="Phone" required>
     <input type="text" name="note" placeholder="Note (optional, e.g. requested style)">
-    <button type="submit">Check In</button>
+    <button type="submit" id="submit-btn" disabled>Check In</button>
   </form>
   <p id="result"></p>
 
+  <style>
+    .slots { display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: 480px; margin-bottom: 1rem; }
+    .slot-btn { padding: 0.5rem 0.75rem; border: 1px solid #999; background: #fff; cursor: pointer; border-radius: 4px; }
+    .slot-btn.selected { background: #1e7e34; color: #fff; border-color: #1e7e34; }
+    .slot-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
+  </style>
+
   <script>
+    let selectedTime = null;
+
+    async function loadSlots() {
+      const res = await fetch("/queue/available-times");
+      const slots = await res.json();
+      const container = document.getElementById("slots");
+      const message = document.getElementById("slots-message");
+      container.innerHTML = "";
+
+      if (slots.length === 0) {
+        message.textContent = "No time slots configured for today.";
+        return;
+      }
+      message.textContent = "";
+
+      for (const slot of slots) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "slot-btn";
+        btn.textContent = slot.time.slice(0, 5);
+        btn.disabled = !slot.available;
+        btn.addEventListener("click", () => {
+          selectedTime = slot.time;
+          document.querySelectorAll(".slot-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          document.getElementById("submit-btn").disabled = false;
+        });
+        container.appendChild(btn);
+      }
+    }
+
     document.getElementById("checkin-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (!selectedTime) return;
       const form = e.target;
       const payload = {
         name: form.name.value,
         phone: form.phone.value,
         note: form.note.value || null,
+        appointment_time: selectedTime,
       };
       const res = await fetch("/queue/checkin", {
         method: "POST",
@@ -27,12 +72,18 @@
       const result = document.getElementById("result");
       if (res.ok) {
         const data = await res.json();
-        result.textContent = `You're checked in! Your position is #${data.position}.`;
+        result.textContent = `You're checked in for ${data.appointment_time.slice(0, 5)}! Your position is #${data.position}.`;
         form.reset();
+        selectedTime = null;
+        document.getElementById("submit-btn").disabled = true;
+        loadSlots();
       } else {
         const err = await res.json();
         result.textContent = `Error: ${err.detail}`;
+        loadSlots();
       }
     });
+
+    loadSlots();
   </script>
 {% endblock %}

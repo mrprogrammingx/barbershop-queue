@@ -15,9 +15,18 @@
     <button type="submit">Save Hours</button>
   </form>
 
+  <h2>Appointment Slots</h2>
+  <form id="schedule-form">
+    <label>Open <input type="time" id="open-time-input" required></label>
+    <label>Close <input type="time" id="close-time-input" required></label>
+    <label>Slot length (minutes) <input type="number" id="slot-duration-input" min="5" step="5" required></label>
+    <label>Capacity per slot <input type="number" id="capacity-input" min="1" step="1" required></label>
+    <button type="submit">Save Slot Settings</button>
+  </form>
+
   <table>
     <thead>
-      <tr><th>#</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Actions</th></tr>
+      <tr><th>#</th><th>Time</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Actions</th></tr>
     </thead>
     <tbody id="queue-body"></tbody>
   </table>
@@ -35,6 +44,7 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${entry.position}</td>
+          <td>${entry.appointment_time.slice(0, 5)}</td>
           <td>${entry.customer.name}</td>
           <td>${entry.customer.phone}</td>
           <td><input type="text" class="note-input" data-id="${entry.id}" placeholder="Note"></td>
@@ -110,8 +120,33 @@
       });
     });
 
+    async function loadScheduleSettings() {
+      const res = await fetch("/admin/shop-status");
+      const status = await res.json();
+      document.getElementById("open-time-input").value = status.open_time.slice(0, 5);
+      document.getElementById("close-time-input").value = status.close_time.slice(0, 5);
+      document.getElementById("slot-duration-input").value = status.slot_duration_minutes;
+      document.getElementById("capacity-input").value = status.capacity_per_slot;
+    }
+
+    document.getElementById("schedule-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      await fetch("/admin/schedule-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          open_time: document.getElementById("open-time-input").value,
+          close_time: document.getElementById("close-time-input").value,
+          slot_duration_minutes: parseInt(document.getElementById("slot-duration-input").value, 10),
+          capacity_per_slot: parseInt(document.getElementById("capacity-input").value, 10),
+        }),
+      });
+      alert("Slot settings saved.");
+    });
+
     loadQueue();
     loadHours();
+    loadScheduleSettings();
     setInterval(loadQueue, 5000);
   </script>
 {% endblock %}

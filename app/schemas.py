@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, time
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -9,6 +9,7 @@ from app.models import QueueStatus
 class CheckInRequest(BaseModel):
     name: str
     phone: str
+    appointment_time: time
     note: Optional[str] = None
 
 
@@ -38,6 +39,7 @@ class QueueEntryOut(BaseModel):
     position: int
     status: QueueStatus
     note: Optional[str] = None
+    appointment_time: time
     created_at: datetime
     customer: CustomerOut
 
@@ -50,11 +52,22 @@ class QueueNoteUpdate(BaseModel):
     note: Optional[str] = None
 
 
+class AvailableSlotOut(BaseModel):
+    time: time
+    capacity: int
+    booked: int
+    available: bool
+
+
 class ShopStatusOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     is_open: bool
     hours: Optional[str] = None
+    open_time: time
+    close_time: time
+    slot_duration_minutes: int
+    capacity_per_slot: int
 
 
 class ShopStatusUpdate(BaseModel):
@@ -63,3 +76,10 @@ class ShopStatusUpdate(BaseModel):
 
 class ShopHoursUpdate(BaseModel):
     hours: Optional[str] = None
+
+
+class ScheduleSettingsUpdate(BaseModel):
+    open_time: time
+    close_time: time
+    slot_duration_minutes: int
+    capacity_per_slot: int

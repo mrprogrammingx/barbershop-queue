@@ -1,4 +1,5 @@
 import enum
+from datetime import time
 
 from sqlalchemy import (
     Column,
@@ -7,6 +8,7 @@ from sqlalchemy import (
     Text,
     DateTime,
     Date,
+    Time,
     Enum,
     ForeignKey,
     Boolean,
@@ -45,6 +47,7 @@ class QueueEntry(Base):
     position = Column(Integer, nullable=False)
     status = Column(Enum(QueueStatus), default=QueueStatus.waiting, nullable=False)
     note = Column(Text, nullable=True)
+    appointment_time = Column(Time, nullable=False)
 
     created_at = Column(DateTime, default=now)
     updated_at = Column(DateTime, default=now, onupdate=now)
@@ -60,4 +63,10 @@ class ShopStatus(Base):
     id = Column(Integer, primary_key=True, index=True)
     is_open = Column(Boolean, default=True, nullable=False)
     hours = Column(String, nullable=True)
+
+    open_time = Column(Time, default=time(9, 0), nullable=False)
+    close_time = Column(Time, default=time(18, 0), nullable=False)
+    slot_duration_minutes = Column(Integer, default=30, nullable=False)
+    capacity_per_slot = Column(Integer, default=1, nullable=False)
+
     updated_at = Column(DateTime, default=now, onupdate=now)

@@ -11,7 +11,7 @@
 
   <table>
     <thead>
-      <tr><th>#</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Checked In</th></tr>
+      <tr><th>#</th><th>Time</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Checked In</th></tr>
     </thead>
     <tbody id="history-body"></tbody>
   </table>
@@ -46,6 +46,7 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${entry.position}</td>
+          <td>${entry.appointment_time.slice(0, 5)}</td>
           <td>${entry.customer.name}</td>
           <td>${entry.customer.phone}</td>
           <td class="note-cell"></td>

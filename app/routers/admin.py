@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import QueueEntry, ShopStatus, QueueStatus
-from app.schemas import ShopStatusOut, ShopStatusUpdate, ShopHoursUpdate
+from app.schemas import (
+    ShopStatusOut,
+    ShopStatusUpdate,
+    ShopHoursUpdate,
+    ScheduleSettingsUpdate,
+)
 from app.timezone import today
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -37,6 +42,18 @@ def set_shop_status(payload: ShopStatusUpdate, db: Session = Depends(get_db)):
 def set_shop_hours(payload: ShopHoursUpdate, db: Session = Depends(get_db)):
     status = _get_or_create_shop_status(db)
     status.hours = payload.hours
+    db.commit()
+    db.refresh(status)
+    return status
+
+
+@router.post("/schedule-settings", response_model=ShopStatusOut)
+def set_schedule_settings(payload: ScheduleSettingsUpdate, db: Session = Depends(get_db)):
+    status = _get_or_create_shop_status(db)
+    status.open_time = payload.open_time
+    status.close_time = payload.close_time
+    status.slot_duration_minutes = payload.slot_duration_minutes
+    status.capacity_per_slot = payload.capacity_per_slot
     db.commit()
     db.refresh(status)
     return status

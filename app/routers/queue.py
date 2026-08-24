@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, time, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus
-from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate
+from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate, AvailableSlotOut
 from app.services.email import send_admin_checkin_notification
 from app.timezone import today as get_today
 
@@ -23,11 +23,59 @@ def _get_or_create_shop_status(db: Session) -> ShopStatus:
     return status
 
 
+def _generate_slots(shop_status: ShopStatus) -> list[time]:
+    slots = []
+    cursor = datetime.combine(date.today(), shop_status.open_time)
+    end = datetime.combine(date.today(), shop_status.close_time)
+    step = timedelta(minutes=shop_status.slot_duration_minutes)
+    while cursor < end:
+        slots.append(cursor.time())
+        cursor += step
+    return slots
+
+
+def _slot_booked_counts(db: Session, queue_date: date) -> dict[time, int]:
+    rows = (
+        db.query(QueueEntry.appointment_time, func.count(QueueEntry.id))
+        .filter(QueueEntry.queue_date == queue_date)
+        .filter(QueueEntry.status != QueueStatus.no_show)
+        .group_by(QueueEntry.appointment_time)
+        .all()
+    )
+    return {slot_time: count for slot_time, count in rows}
+
+
+@router.get("/available-times", response_model=list[AvailableSlotOut])
+def get_available_times(db: Session = Depends(get_db)):
+    shop_status = _get_or_create_shop_status(db)
+    today = get_today()
+    booked_counts = _slot_booked_counts(db, today)
+
+    return [
+        AvailableSlotOut(
+            time=slot,
+            capacity=shop_status.capacity_per_slot,
+            booked=booked_counts.get(slot, 0),
+            available=booked_counts.get(slot, 0) < shop_status.capacity_per_slot,
+        )
+        for slot in _generate_slots(shop_status)
+    ]
+
+
 @router.post("/checkin", response_model=QueueEntryOut)
 def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     shop_status = _get_or_create_shop_status(db)
     if not shop_status.is_open:
         raise HTTPException(status_code=400, detail="Shop is currently closed")
+
+    today = get_today()
+
+    if payload.appointment_time not in _generate_slots(shop_status):
+        raise HTTPException(status_code=400, detail="Invalid appointment time")
+
+    booked_count = _slot_booked_counts(db, today).get(payload.appointment_time, 0)
+    if booked_count >= shop_status.capacity_per_slot:
+        raise HTTPException(status_code=400, detail="That time is fully booked")
 
     customer = db.query(Customer).filter(Customer.phone == payload.phone).first()
     if customer is None:
@@ -37,7 +85,6 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
         customer.name = payload.name
     db.flush()
 
-    today = get_today()
     max_position = (
         db.query(func.max(QueueEntry.position))
         .filter(QueueEntry.queue_date == today)
@@ -51,12 +98,15 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
         position=next_position,
         status=QueueStatus.waiting,
         note=payload.note,
+        appointment_time=payload.appointment_time,
     )
     db.add(entry)
     db.commit()
     db.refresh(entry)
 
-    send_admin_checkin_notification(customer.name, customer.phone, entry.position, entry.note)
+    send_admin_checkin_notification(
+        customer.name, customer.phone, entry.position, str(entry.appointment_time), entry.note
+    )
 
     return entry
 
@@ -68,7 +118,7 @@ def list_queue(db: Session = Depends(get_db)):
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == today)
         .filter(QueueEntry.status.in_([QueueStatus.waiting, QueueStatus.next, QueueStatus.in_progress]))
-        .order_by(QueueEntry.position.asc())
+        .order_by(QueueEntry.appointment_time.asc(), QueueEntry.position.asc())
         .all()
     )
 
@@ -89,7 +139,7 @@ def get_history_for_date(queue_date: date, db: Session = Depends(get_db)):
     return (
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == queue_date)
-        .order_by(QueueEntry.position.asc())
+        .order_by(QueueEntry.appointment_time.asc(), QueueEntry.position.asc())
         .all()
     )
 
@@ -130,7 +180,7 @@ def call_next(db: Session = Depends(get_db)):
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == today)
         .filter(QueueEntry.status.in_([QueueStatus.waiting, QueueStatus.next]))
-        .order_by(QueueEntry.position.asc())
+        .order_by(QueueEntry.appointment_time.asc(), QueueEntry.position.asc())
         .first()
     )
     if entry is None:
@@ -149,7 +199,7 @@ def _promote_upcoming_next(db: Session, today: date) -> None:
     upcoming = (
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == today, QueueEntry.status == QueueStatus.waiting)
-        .order_by(QueueEntry.position.asc())
+        .order_by(QueueEntry.appointment_time.asc(), QueueEntry.position.asc())
         .first()
     )
     if upcoming is None:

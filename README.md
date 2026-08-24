@@ -1,8 +1,8 @@
 # Barbershop Queue
 
-A simple barbershop queue management system: customers check in online with name and phone,
-get a daily queue position, and the admin gets emailed whenever someone joins. Staff manage
-the queue from a lightweight dashboard.
+A simple barbershop queue management system: customers pick an available appointment time and
+check in online with name and phone, and the admin gets emailed whenever someone joins. Staff
+manage the queue and appointment slot settings from a lightweight dashboard.
 
 ## Stack
 
@@ -66,12 +66,15 @@ are not emailed; only the admin address is notified.
 
 ## Core features
 
-1. **Customer check-in** — name and phone (both required), joins today's queue.
-2. **Queue position tracking** — auto-incrementing position, reset daily.
-3. **Staff dashboard** — view current queue, call next, mark done/no-show.
-4. **Admin email notification** — sent to `ADMIN_EMAIL` whenever a customer checks in.
-5. **Admin controls** — toggle shop open/closed, set shop hours, reset today's queue.
-6. **Queue history** — browse past days' queue entries by date.
+1. **Appointment slots** — admin sets open/close time, slot length, and capacity per slot;
+   customers see live availability and pick an open time at check-in.
+2. **Customer check-in** — name and phone (both required), joins today's queue at the chosen slot.
+3. **Queue position tracking** — auto-incrementing position, ordered by appointment time.
+4. **Staff dashboard** — view current queue, call next, mark done/no-show, edit slot settings.
+5. **Admin email notification** — sent to `ADMIN_EMAIL` whenever a customer checks in.
+6. **Admin controls** — toggle shop open/closed, set shop hours text, reset today's queue.
+7. **Queue history** — browse past days' queue entries by date.
+8. **Customers page** — every customer who's ever checked in, with visit counts.
 
 ## Tests
 

@@ -16,6 +16,28 @@ export const buttonClass =
 export const buttonOutlineClass =
   "inline-flex items-center justify-center gap-2 rounded-full border border-gold/50 px-5 py-2 text-xs font-semibold uppercase tracking-widest text-cream transition-all hover:border-gold hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-40";
 
+export function Toggle({ checked, onChange, label, disabled = false }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition-colors duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal disabled:cursor-not-allowed disabled:opacity-40 ${
+        checked ? "bg-gold shadow-[0_0_16px_-2px_rgba(201,151,74,0.7)]" : "bg-charcoal-lighter"
+      }`}
+    >
+      <span
+        className={`inline-block h-6 w-6 transform rounded-full bg-cream shadow-md transition-transform duration-300 ease-out ${
+          checked ? "translate-x-7" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+}
+
 export function Table({ columns, children }) {
   return (
     <div className="overflow-x-auto">

@@ -11,7 +11,7 @@ import {
   setShopStatus,
   unblockSlot,
 } from "../../lib/adminApi";
-import { Card, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
+import { Card, Toggle, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -130,24 +130,41 @@ export default function AdminSettings() {
       <h1 className="font-display text-2xl tracking-wide">Settings</h1>
 
       <Card title="Booking Today">
-        <p className="mb-3 max-w-md text-sm text-cream/60">
+        <p className="mb-4 max-w-md text-sm text-cream/60">
           Turn off new bookings for today only, without changing the regular weekly schedule. Other dates stay bookable.
         </p>
-        <p className="mb-3 text-sm">{status.booking_open ? "Booking is open for today." : "Booking is closed for today."}</p>
-        <button type="button" onClick={toggleBookingToday} className={buttonClass}>
-          Toggle Booking Open/Closed
-        </button>
+        <div className="flex items-center gap-4">
+          <Toggle checked={status.booking_open} onChange={toggleBookingToday} label="Toggle booking open or closed for today" />
+          <span className={`text-sm font-medium ${status.booking_open ? "text-gold" : "text-cream/50"}`}>
+            {status.booking_open ? "Booking is open for today" : "Booking is closed for today"}
+          </span>
+        </div>
       </Card>
 
       <Card title="Days Open">
         <form onSubmit={saveOpenDays} className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-4">
-            {DAY_OPTIONS.map((day) => (
-              <label key={day.value} className="flex items-center gap-2 text-sm text-cream/80">
-                <input type="checkbox" checked={openDays.includes(day.value)} onChange={() => toggleDay(day.value)} />
-                {day.label}
-              </label>
-            ))}
+          <div className="flex flex-wrap gap-2.5">
+            {DAY_OPTIONS.map((day) => {
+              const active = openDays.includes(day.value);
+              return (
+                <label
+                  key={day.value}
+                  className={`cursor-pointer select-none rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-widest transition-all duration-200 ${
+                    active
+                      ? "border-gold bg-gold text-ink shadow-[0_0_16px_-4px_rgba(201,151,74,0.7)]"
+                      : "border-charcoal-lighter bg-ink text-cream/60 hover:border-gold/50 hover:text-cream"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => toggleDay(day.value)}
+                    className="sr-only"
+                  />
+                  {day.label}
+                </label>
+              );
+            })}
           </div>
           <button type="submit" className={`${buttonClass} self-start`}>
             Save Days Open

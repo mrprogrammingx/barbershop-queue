@@ -36,23 +36,36 @@
   <div id="shop-status-banner"></div>
   {% block content %}{% endblock %}
   <script>
+    const WEEKDAY_CODES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const DAY_LABELS = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
+    const DAY_ABBR = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
+
     async function loadShopStatusBanner() {
       try {
         const res = await fetch("/admin/shop-status");
         const data = await res.json();
         const banner = document.getElementById("shop-status-banner");
         banner.textContent = "";
-        banner.append(document.createTextNode(data.is_open ? "Shop is open" : "Shop is closed"));
+
+        const todayCode = WEEKDAY_CODES[new Date().getDay()];
+        const openToday = data.open_days && data.open_days.includes(todayCode);
+        const effectivelyOpen = data.is_open && openToday;
+
+        if (data.is_open && !openToday) {
+          banner.append(document.createTextNode(`Closed today (${DAY_LABELS[todayCode]})`));
+        } else {
+          banner.append(document.createTextNode(data.is_open ? "Shop is open" : "Shop is closed"));
+        }
+
         if (data.open_days && data.open_days.length > 0) {
-          const dayLabels = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
           const order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
           const sorted = order.filter(d => data.open_days.includes(d));
           const hoursEl = document.createElement("span");
           hoursEl.className = "hours";
-          hoursEl.textContent = `${sorted.map(d => dayLabels[d]).join(", ")} · ${data.open_time.slice(0, 5)}–${data.close_time.slice(0, 5)}`;
+          hoursEl.textContent = `${sorted.map(d => DAY_ABBR[d]).join(", ")} · ${data.open_time.slice(0, 5)}–${data.close_time.slice(0, 5)}`;
           banner.append(hoursEl);
         }
-        banner.className = data.is_open ? "open" : "closed";
+        banner.className = effectivelyOpen ? "open" : "closed";
       } catch (e) {
         // ignore
       }

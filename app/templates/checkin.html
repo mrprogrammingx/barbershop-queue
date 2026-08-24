@@ -30,8 +30,16 @@
   <script>
     let selectedTime = null;
 
+    const CHECKIN_WEEKDAY_CODES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const CHECKIN_DAY_LABELS = { mon: "Mondays", tue: "Tuesdays", wed: "Wednesdays", thu: "Thursdays", fri: "Fridays", sat: "Saturdays", sun: "Sundays" };
+
     function todayIso() {
       return new Date().toISOString().slice(0, 10);
+    }
+
+    function weekdayCodeForDate(isoDate) {
+      const [y, m, d] = isoDate.split("-").map(Number);
+      return CHECKIN_WEEKDAY_CODES[new Date(y, m - 1, d).getDay()];
     }
 
     async function loadSlots() {
@@ -52,7 +60,14 @@
 
       const slots = await res.json();
       if (slots.length === 0) {
-        message.textContent = "No time slots configured for that date.";
+        const statusRes = await fetch("/admin/shop-status");
+        const status = await statusRes.json();
+        const weekdayCode = weekdayCodeForDate(selectedDate);
+        if (status.open_days && !status.open_days.includes(weekdayCode)) {
+          message.textContent = `The shop is closed on ${CHECKIN_DAY_LABELS[weekdayCode]}. Please pick another date.`;
+        } else {
+          message.textContent = "No time slots configured for that date.";
+        }
         return;
       }
       message.textContent = "";

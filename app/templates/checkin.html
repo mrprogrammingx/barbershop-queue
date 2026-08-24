@@ -20,6 +20,24 @@
   </form>
   <p id="result"></p>
 
+  <h2>My Bookings</h2>
+  <form id="my-bookings-form">
+    <input type="tel" id="my-bookings-phone" placeholder="Your phone" required>
+    <button type="submit">Look Up</button>
+  </form>
+  <div id="my-bookings-filter" style="display: none;">
+    <label for="my-bookings-date-picker">Date:</label>
+    <input type="date" id="my-bookings-date-picker">
+    <button id="my-bookings-clear-date" type="button">Show All</button>
+  </div>
+  <table id="my-bookings-table" style="display: none;">
+    <thead>
+      <tr><th>Date</th><th>Time</th><th>Status</th><th>Note</th></tr>
+    </thead>
+    <tbody id="my-bookings-body"></tbody>
+  </table>
+  <p id="my-bookings-message"></p>
+
   <style>
     .slots { display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: 480px; margin-bottom: 1rem; }
     .slot-btn { padding: 0.5rem 0.75rem; border: 1px solid #999; background: #fff; cursor: pointer; border-radius: 4px; }
@@ -145,6 +163,59 @@
 
       loadSlots();
     }
+
+    let myBookingsPhone = null;
+
+    async function loadMyBookings() {
+      if (!myBookingsPhone) return;
+      const selectedDate = document.getElementById("my-bookings-date-picker").value;
+      const url = selectedDate
+        ? `/queue/my-bookings?phone=${encodeURIComponent(myBookingsPhone)}&for_date=${selectedDate}`
+        : `/queue/my-bookings?phone=${encodeURIComponent(myBookingsPhone)}`;
+
+      const res = await fetch(url);
+      const bookings = await res.json();
+      const table = document.getElementById("my-bookings-table");
+      const body = document.getElementById("my-bookings-body");
+      const message = document.getElementById("my-bookings-message");
+      body.innerHTML = "";
+
+      if (bookings.length === 0) {
+        table.style.display = "none";
+        message.textContent = selectedDate
+          ? "No bookings found for that date."
+          : "No bookings found for that phone number.";
+        return;
+      }
+
+      message.textContent = "";
+      table.style.display = "table";
+      for (const booking of bookings) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${booking.queue_date}</td>
+          <td>${booking.appointment_time.slice(0, 5)}</td>
+          <td>${booking.status.replace("_", " ")}</td>
+          <td></td>
+        `;
+        tr.querySelector("td:last-child").textContent = booking.note || "";
+        body.appendChild(tr);
+      }
+    }
+
+    document.getElementById("my-bookings-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      myBookingsPhone = document.getElementById("my-bookings-phone").value;
+      document.getElementById("my-bookings-filter").style.display = "block";
+      document.getElementById("my-bookings-date-picker").value = "";
+      loadMyBookings();
+    });
+
+    document.getElementById("my-bookings-date-picker").addEventListener("change", loadMyBookings);
+    document.getElementById("my-bookings-clear-date").addEventListener("click", () => {
+      document.getElementById("my-bookings-date-picker").value = "";
+      loadMyBookings();
+    });
 
     initDatePicker();
   </script>

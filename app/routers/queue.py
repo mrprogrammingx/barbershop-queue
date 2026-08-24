@@ -177,6 +177,19 @@ def list_queue(for_date: date | None = None, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/my-bookings", response_model=list[QueueEntryOut])
+def get_my_bookings(phone: str, for_date: date | None = None, db: Session = Depends(get_db)):
+    customer = db.query(Customer).filter(Customer.phone == phone).first()
+    if customer is None:
+        return []
+
+    query = db.query(QueueEntry).filter(QueueEntry.customer_id == customer.id)
+    if for_date is not None:
+        query = query.filter(QueueEntry.queue_date == for_date)
+
+    return query.order_by(QueueEntry.queue_date.desc(), QueueEntry.appointment_time.asc()).all()
+
+
 @router.get("/history/dates", response_model=list[date])
 def list_history_dates(db: Session = Depends(get_db)):
     rows = (

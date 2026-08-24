@@ -57,10 +57,14 @@ cp .env.example .env
 uvicorn app.main:app --reload --port 8002
 ```
 
-- Check-in page: http://localhost:8002/
+- Public site (React, booking included): http://localhost:8002/
+- Simple no-JS check-in fallback: http://localhost:8002/checkin
 - Staff dashboard: http://localhost:8002/dashboard
 - Health check: http://localhost:8002/health
 - API docs: http://localhost:8002/docs
+
+This single server serves both the API and the built frontend — see
+[Frontend](#frontend-react-marketing-site) below for the one build step required first.
 
 ## Admin login
 
@@ -86,10 +90,26 @@ are not emailed; only the admin address is notified.
 
 ## Frontend (React marketing site)
 
-`frontend/` is a separate Vite + React app — see [frontend/README.md](frontend/README.md) for
-setup. It calls this API directly for live availability and booking, so when running it
-against a non-default origin (deployed, or a different dev port), set `CORS_ORIGINS` here to
-match.
+`frontend/` is a Vite + React app — see [frontend/README.md](frontend/README.md) for details.
+It calls this API for live availability and booking.
+
+**Single-server mode (recommended):** build the frontend once, then this FastAPI app serves
+the built files directly at `/` (any path not matched by an API/admin route falls through to
+the React app, so client-side routes like `/booking` and `/gallery` work too):
+
+```bash
+cd frontend && npm install && npm run build && cd ..
+uvicorn app.main:app --reload --port 8002
+```
+
+Re-run `npm run build` after frontend changes; `--reload` only watches Python files. Because
+it's the same origin, no `CORS_ORIGINS` setup is needed for this mode.
+
+**Separate dev servers (for active frontend development):** run `npm run dev` in `frontend/`
+(defaults to http://localhost:5173) alongside `uvicorn` on 8002. Vite proxies `/queue/*` calls
+to the backend; set `CORS_ORIGINS` here to include the Vite dev URL if you access it directly
+instead. The "Staff Login" nav link points at `VITE_API_BASE_URL` (or `localhost:8002` by
+default) so it reaches the backend's `/login` either way.
 
 ## Core features
 

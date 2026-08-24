@@ -1,0 +1,82 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Loader2, Search } from "lucide-react";
+import { getMyBookings } from "../lib/api";
+import { formatDateLabel, formatTimeLabel } from "../lib/format";
+
+const STATUS_LABEL = {
+  waiting: "Waiting",
+  next: "Up Next",
+  in_progress: "In Chair",
+  done: "Completed",
+  no_show: "No Show",
+};
+
+export default function MyBookingsLookup() {
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [results, setResults] = useState(null);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const bookings = await getMyBookings(phone);
+      setResults(bookings);
+    } catch (err) {
+      setError(err.message);
+      setResults(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
+        <input
+          type="tel"
+          required
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="Enter the phone number you booked with"
+          className="flex-1 rounded-lg border border-charcoal-lighter bg-ink px-4 py-3 text-cream outline-none transition-colors focus:border-gold"
+        />
+        <button type="submit" disabled={loading} className="btn-outline shrink-0">
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+          Find My Bookings
+        </button>
+      </form>
+
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+
+      {results && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 flex flex-col gap-3"
+        >
+          {results.length === 0 && (
+            <p className="text-sm text-cream-dim">No bookings found for that number.</p>
+          )}
+          {results.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex items-center justify-between rounded-lg border border-charcoal-lighter bg-ink px-5 py-4"
+            >
+              <div>
+                <p className="text-cream">{formatDateLabel(entry.queue_date)}</p>
+                <p className="text-sm text-cream-dim">{formatTimeLabel(entry.appointment_time)}</p>
+              </div>
+              <span className="rounded-full border border-gold/30 px-3 py-1 text-xs uppercase tracking-wider text-gold">
+                {STATUS_LABEL[entry.status] ?? entry.status}
+              </span>
+            </div>
+          ))}
+        </motion.div>
+      )}
+    </div>
+  );
+}

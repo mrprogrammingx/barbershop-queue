@@ -1,5 +1,6 @@
 import os
 import secrets
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -7,7 +8,7 @@ load_dotenv()
 
 from fastapi import FastAPI, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -65,7 +66,7 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/")
+@app.get("/checkin")
 def checkin_page(request: Request):
     return _render(request, "checkin.html")
 
@@ -125,3 +126,20 @@ def customers_page(request: Request):
 @app.get("/settings")
 def settings_page(request: Request):
     return _require_admin_page(request, "settings.html")
+
+
+# Serve the built React marketing/booking site (frontend/dist, from `npm run build`)
+# from this same app/port, so there's a single server for both frontend and backend.
+# Any path not already matched by a route above (e.g. /booking, /gallery, static
+# assets) falls through to here; unknown paths get index.html so React Router can
+# handle client-side routing.
+FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+if FRONTEND_DIST.is_dir():
+
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str):
+        candidate = FRONTEND_DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")

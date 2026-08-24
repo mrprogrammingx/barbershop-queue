@@ -14,6 +14,7 @@ import {
 } from "../../lib/adminApi";
 import { Card, Toggle, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
+import TimePickerField from "../../components/admin/TimePickerField";
 import { useAdminUI } from "../../components/admin/AdminUIContext";
 
 function todayIso() {
@@ -39,7 +40,7 @@ export default function AdminSettings() {
   const [emailsMessage, setEmailsMessage] = useState("");
   const [blockDate, setBlockDate] = useState(todayIso());
   const [slots, setSlots] = useState([]);
-  const [newTime, setNewTime] = useState("");
+  const [newTime, setNewTime] = useState("09:00");
 
   async function refreshStatus() {
     const data = await getShopStatus();
@@ -123,7 +124,6 @@ export default function AdminSettings() {
     e.preventDefault();
     if (!newTime) return;
     await addIncludedSlot(blockDate, newTime);
-    setNewTime("");
     refreshSlots();
   }
 
@@ -183,22 +183,18 @@ export default function AdminSettings() {
         <form onSubmit={saveSchedule} className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
           <label className="flex flex-col gap-1 text-sm text-cream/70">
             Open
-            <input
-              type="time"
+            <TimePickerField
               required
               value={schedule.open_time}
-              onChange={(e) => setSchedule((s) => ({ ...s, open_time: e.target.value }))}
-              className={inputClass}
+              onChange={(time) => setSchedule((s) => ({ ...s, open_time: time }))}
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-cream/70">
             Close
-            <input
-              type="time"
+            <TimePickerField
               required
               value={schedule.close_time}
-              onChange={(e) => setSchedule((s) => ({ ...s, close_time: e.target.value }))}
-              className={inputClass}
+              onChange={(time) => setSchedule((s) => ({ ...s, close_time: time }))}
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-cream/70">
@@ -279,7 +275,7 @@ export default function AdminSettings() {
           })}
         </div>
         <form onSubmit={addExtraTime} className="flex items-center gap-3">
-          <input type="time" required value={newTime} onChange={(e) => setNewTime(e.target.value)} className={inputClass} />
+          <TimePickerField required value={newTime} onChange={setNewTime} />
           <button type="submit" className={buttonOutlineClass}>
             Add Extra Time for This Date
           </button>

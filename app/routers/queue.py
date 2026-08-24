@@ -166,11 +166,11 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=list[QueueEntryOut])
-def list_queue(db: Session = Depends(get_db)):
-    today = get_today()
+def list_queue(for_date: date | None = None, db: Session = Depends(get_db)):
+    target_date = for_date or get_today()
     return (
         db.query(QueueEntry)
-        .filter(QueueEntry.queue_date == today)
+        .filter(QueueEntry.queue_date == target_date)
         .filter(QueueEntry.status.in_([QueueStatus.waiting, QueueStatus.next, QueueStatus.in_progress]))
         .order_by(QueueEntry.appointment_time.asc(), QueueEntry.position.asc())
         .all()

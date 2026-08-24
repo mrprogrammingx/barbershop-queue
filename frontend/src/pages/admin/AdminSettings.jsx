@@ -18,7 +18,8 @@ import TimePickerField from "../../components/admin/TimePickerField";
 import { useAdminUI } from "../../components/admin/AdminUIContext";
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 const DAY_OPTIONS = [
@@ -61,8 +62,15 @@ export default function AdminSettings() {
       setSlots(data);
     } catch (err) {
       setSlots([]);
-      if (blockDate < todayIso()) {
-        setBlockDate(todayIso());
+      // The server (not the browser clock, which can be skewed in some
+      // environments) is the source of truth for "today" — if it rejects
+      // this date as past, step forward a day and retry rather than
+      // trusting a possibly-wrong client-side todayIso().
+      if (/past/i.test(err.message || "")) {
+        const [y, m, d] = blockDate.split("-").map(Number);
+        const next = new Date(y, m - 1, d + 1);
+        const iso = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
+        setBlockDate(iso);
       }
     }
   }

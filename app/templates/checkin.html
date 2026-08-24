@@ -22,7 +22,7 @@
 
   <h2>My Bookings</h2>
   <form id="my-bookings-form">
-    <input type="tel" id="my-bookings-phone" placeholder="Your phone" required>
+    <input type="tel" id="my-bookings-phone" placeholder="Your phone" pattern="^\+?[0-9\s\-()]{7,20}$" title="Enter a valid phone number (at least 7 digits)" required>
     <button type="submit">Look Up</button>
   </form>
   <div id="my-bookings-filter" style="display: none;">
@@ -181,12 +181,19 @@
         : `/queue/my-bookings?phone=${encodeURIComponent(myBookingsPhone)}`;
 
       const res = await fetch(url);
-      const bookings = await res.json();
       const table = document.getElementById("my-bookings-table");
       const body = document.getElementById("my-bookings-body");
       const message = document.getElementById("my-bookings-message");
       body.innerHTML = "";
 
+      if (!res.ok) {
+        const err = await res.json();
+        table.style.display = "none";
+        message.textContent = `Error: ${formatErrorDetail(err.detail)}`;
+        return;
+      }
+
+      const bookings = await res.json();
       if (bookings.length === 0) {
         table.style.display = "none";
         message.textContent = selectedDate

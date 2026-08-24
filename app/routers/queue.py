@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus, BlockedSlot, IncludedSlot
-from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate, AvailableSlotOut
+from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate, AvailableSlotOut, validate_phone
 from app.services.email import send_admin_checkin_notification
 from app.timezone import today as get_today
 
@@ -179,6 +179,11 @@ def list_queue(for_date: date | None = None, db: Session = Depends(get_db)):
 
 @router.get("/my-bookings", response_model=list[QueueEntryOut])
 def get_my_bookings(phone: str, for_date: date | None = None, db: Session = Depends(get_db)):
+    try:
+        phone = validate_phone(phone)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
     customer = db.query(Customer).filter(Customer.phone == phone).first()
     if customer is None:
         return []

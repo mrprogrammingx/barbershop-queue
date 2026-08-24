@@ -18,21 +18,22 @@
   <p id="empty-message" style="display: none;">No queue entries for this date.</p>
 
   <script>
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
     async function loadDates() {
       const res = await fetch("/queue/history/dates");
       const dates = await res.json();
       const picker = document.getElementById("date-picker");
       const availableDates = document.getElementById("available-dates");
 
-      if (dates.length > 0) {
-        picker.value = dates[0];
-        availableDates.textContent = "Dates with history: " + dates.join(", ");
-        loadHistory(dates[0]);
-      } else {
-        picker.value = new Date().toISOString().slice(0, 10);
-        availableDates.textContent = "No past queue history yet.";
-        document.getElementById("empty-message").style.display = "block";
-      }
+      picker.value = todayIso();
+      availableDates.textContent = dates.length > 0
+        ? "Dates with history: " + dates.join(", ")
+        : "No past queue history yet.";
+
+      loadHistory(picker.value);
     }
 
     async function loadHistory(queueDate) {

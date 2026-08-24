@@ -46,10 +46,13 @@ def _slot_booked_counts(db: Session, queue_date: date) -> dict[time, int]:
 
 
 @router.get("/available-times", response_model=list[AvailableSlotOut])
-def get_available_times(db: Session = Depends(get_db)):
+def get_available_times(for_date: date | None = None, db: Session = Depends(get_db)):
+    target_date = for_date or get_today()
+    if target_date < get_today():
+        raise HTTPException(status_code=400, detail="Cannot book a date in the past")
+
     shop_status = _get_or_create_shop_status(db)
-    today = get_today()
-    booked_counts = _slot_booked_counts(db, today)
+    booked_counts = _slot_booked_counts(db, target_date)
 
     return [
         AvailableSlotOut(
@@ -64,16 +67,19 @@ def get_available_times(db: Session = Depends(get_db)):
 
 @router.post("/checkin", response_model=QueueEntryOut)
 def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
-    shop_status = _get_or_create_shop_status(db)
-    if not shop_status.is_open:
-        raise HTTPException(status_code=400, detail="Shop is currently closed")
-
     today = get_today()
+
+    if payload.appointment_date < today:
+        raise HTTPException(status_code=400, detail="Cannot book a date in the past")
+
+    shop_status = _get_or_create_shop_status(db)
+    if payload.appointment_date == today and not shop_status.is_open:
+        raise HTTPException(status_code=400, detail="Shop is currently closed")
 
     if payload.appointment_time not in _generate_slots(shop_status):
         raise HTTPException(status_code=400, detail="Invalid appointment time")
 
-    booked_count = _slot_booked_counts(db, today).get(payload.appointment_time, 0)
+    booked_count = _slot_booked_counts(db, payload.appointment_date).get(payload.appointment_time, 0)
     if booked_count >= shop_status.capacity_per_slot:
         raise HTTPException(status_code=400, detail="That time is fully booked")
 
@@ -87,14 +93,14 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
 
     max_position = (
         db.query(func.max(QueueEntry.position))
-        .filter(QueueEntry.queue_date == today)
+        .filter(QueueEntry.queue_date == payload.appointment_date)
         .scalar()
     )
     next_position = (max_position or 0) + 1
 
     entry = QueueEntry(
         customer_id=customer.id,
-        queue_date=today,
+        queue_date=payload.appointment_date,
         position=next_position,
         status=QueueStatus.waiting,
         note=payload.note,

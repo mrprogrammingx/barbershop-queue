@@ -9,6 +9,7 @@ from app.models import QueueStatus
 class CheckInRequest(BaseModel):
     name: str
     phone: str
+    appointment_date: date
     appointment_time: time
     note: Optional[str] = None
 

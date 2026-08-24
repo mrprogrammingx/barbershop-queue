@@ -3,6 +3,11 @@
 {% block content %}
   <h1>Join the Queue</h1>
 
+  <div>
+    <label for="date-picker">Date:</label>
+    <input type="date" id="date-picker">
+  </div>
+
   <h2>Available Times</h2>
   <div id="slots" class="slots"></div>
   <p id="slots-message"></p>
@@ -25,15 +30,29 @@
   <script>
     let selectedTime = null;
 
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
     async function loadSlots() {
-      const res = await fetch("/queue/available-times");
-      const slots = await res.json();
+      selectedTime = null;
+      document.getElementById("submit-btn").disabled = true;
+
+      const selectedDate = document.getElementById("date-picker").value || todayIso();
+      const res = await fetch(`/queue/available-times?for_date=${selectedDate}`);
       const container = document.getElementById("slots");
       const message = document.getElementById("slots-message");
       container.innerHTML = "";
 
+      if (!res.ok) {
+        const err = await res.json();
+        message.textContent = err.detail;
+        return;
+      }
+
+      const slots = await res.json();
       if (slots.length === 0) {
-        message.textContent = "No time slots configured for today.";
+        message.textContent = "No time slots configured for that date.";
         return;
       }
       message.textContent = "";
@@ -54,6 +73,8 @@
       }
     }
 
+    document.getElementById("date-picker").addEventListener("change", loadSlots);
+
     document.getElementById("checkin-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!selectedTime) return;
@@ -62,6 +83,7 @@
         name: form.name.value,
         phone: form.phone.value,
         note: form.note.value || null,
+        appointment_date: document.getElementById("date-picker").value || todayIso(),
         appointment_time: selectedTime,
       };
       const res = await fetch("/queue/checkin", {
@@ -72,10 +94,8 @@
       const result = document.getElementById("result");
       if (res.ok) {
         const data = await res.json();
-        result.textContent = `You're checked in for ${data.appointment_time.slice(0, 5)}! Your position is #${data.position}.`;
+        result.textContent = `You're checked in for ${data.queue_date} at ${data.appointment_time.slice(0, 5)}! Your position is #${data.position}.`;
         form.reset();
-        selectedTime = null;
-        document.getElementById("submit-btn").disabled = true;
         loadSlots();
       } else {
         const err = await res.json();
@@ -84,6 +104,8 @@
       }
     });
 
+    document.getElementById("date-picker").value = todayIso();
+    document.getElementById("date-picker").min = todayIso();
     loadSlots();
   </script>
 {% endblock %}

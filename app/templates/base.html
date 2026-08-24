@@ -43,10 +43,13 @@
         const banner = document.getElementById("shop-status-banner");
         banner.textContent = "";
         banner.append(document.createTextNode(data.is_open ? "Shop is open" : "Shop is closed"));
-        if (data.hours) {
+        if (data.open_days && data.open_days.length > 0) {
+          const dayLabels = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
+          const order = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+          const sorted = order.filter(d => data.open_days.includes(d));
           const hoursEl = document.createElement("span");
           hoursEl.className = "hours";
-          hoursEl.textContent = data.hours;
+          hoursEl.textContent = `${sorted.map(d => dayLabels[d]).join(", ")} · ${data.open_time.slice(0, 5)}–${data.close_time.slice(0, 5)}`;
           banner.append(hoursEl);
         }
         banner.className = data.is_open ? "open" : "closed";

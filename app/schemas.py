@@ -1,9 +1,11 @@
 from datetime import datetime, date, time
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models import QueueStatus
+
+WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 
 class CheckInRequest(BaseModel):
@@ -92,19 +94,34 @@ class ShopStatusOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     is_open: bool
-    hours: Optional[str] = None
+    open_days: list[str]
     open_time: time
     close_time: time
     slot_duration_minutes: int
     capacity_per_slot: int
+
+    @field_validator("open_days", mode="before")
+    @classmethod
+    def _split_open_days(cls, value):
+        if isinstance(value, str):
+            return [day for day in value.split(",") if day]
+        return value
 
 
 class ShopStatusUpdate(BaseModel):
     is_open: bool
 
 
-class ShopHoursUpdate(BaseModel):
-    hours: Optional[str] = None
+class OpenDaysUpdate(BaseModel):
+    open_days: list[str]
+
+    @field_validator("open_days")
+    @classmethod
+    def _validate_days(cls, value):
+        invalid = set(value) - set(WEEKDAYS)
+        if invalid:
+            raise ValueError(f"Invalid weekday(s): {', '.join(sorted(invalid))}")
+        return value
 
 
 class ScheduleSettingsUpdate(BaseModel):

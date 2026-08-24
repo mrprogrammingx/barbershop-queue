@@ -9,7 +9,7 @@ from app.models import QueueEntry, ShopStatus, QueueStatus, BlockedSlot, Include
 from app.schemas import (
     ShopStatusOut,
     ShopStatusUpdate,
-    ShopHoursUpdate,
+    OpenDaysUpdate,
     ScheduleSettingsUpdate,
     BlockedSlotRequest,
     BlockedSlotOut,
@@ -45,10 +45,10 @@ def set_shop_status(payload: ShopStatusUpdate, db: Session = Depends(get_db)):
     return status
 
 
-@router.post("/hours", response_model=ShopStatusOut)
-def set_shop_hours(payload: ShopHoursUpdate, db: Session = Depends(get_db)):
+@router.post("/open-days", response_model=ShopStatusOut)
+def set_open_days(payload: OpenDaysUpdate, db: Session = Depends(get_db)):
     status = _get_or_create_shop_status(db)
-    status.hours = payload.hours
+    status.open_days = ",".join(payload.open_days)
     db.commit()
     db.refresh(status)
     return status

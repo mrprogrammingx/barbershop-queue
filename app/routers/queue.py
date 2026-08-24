@@ -23,7 +23,18 @@ def _get_or_create_shop_status(db: Session) -> ShopStatus:
     return status
 
 
-def _base_slots(shop_status: ShopStatus) -> list[time]:
+WEEKDAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+
+def _is_open_day(shop_status: ShopStatus, queue_date: date) -> bool:
+    open_days = set(shop_status.open_days.split(",")) if shop_status.open_days else set()
+    return WEEKDAY_CODES[queue_date.weekday()] in open_days
+
+
+def _base_slots(shop_status: ShopStatus, queue_date: date) -> list[time]:
+    if not _is_open_day(shop_status, queue_date):
+        return []
+
     slots = []
     cursor = datetime.combine(date.today(), shop_status.open_time)
     end = datetime.combine(date.today(), shop_status.close_time)
@@ -44,7 +55,7 @@ def _included_slot_times(db: Session, queue_date: date) -> set[time]:
 
 
 def _generate_slots(db: Session, shop_status: ShopStatus, queue_date: date) -> list[time]:
-    slots = set(_base_slots(shop_status)) | _included_slot_times(db, queue_date)
+    slots = set(_base_slots(shop_status, queue_date)) | _included_slot_times(db, queue_date)
     return sorted(slots)
 
 
@@ -78,7 +89,7 @@ def get_available_times(for_date: date | None = None, db: Session = Depends(get_
     booked_counts = _slot_booked_counts(db, target_date)
     blocked_times = _blocked_slot_times(db, target_date)
     included_times = _included_slot_times(db, target_date)
-    base_times = set(_base_slots(shop_status))
+    base_times = set(_base_slots(shop_status, target_date))
 
     return [
         AvailableSlotOut(

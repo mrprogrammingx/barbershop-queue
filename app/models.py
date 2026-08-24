@@ -87,7 +87,9 @@ class ShopStatus(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     is_open = Column(Boolean, default=True, nullable=False)
-    hours = Column(String, nullable=True)
+
+    # Comma-separated weekday codes the shop is open, e.g. "mon,tue,wed,thu,fri"
+    open_days = Column(String, default="mon,tue,wed,thu,fri,sat,sun", nullable=False)
 
     open_time = Column(Time, default=time(9, 0), nullable=False)
     close_time = Column(Time, default=time(18, 0), nullable=False)

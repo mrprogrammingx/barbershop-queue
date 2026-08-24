@@ -1,0 +1,61 @@
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { login } from "../../lib/adminApi";
+import { inputClass, buttonClass } from "../../components/admin/ui";
+
+export default function AdminLogin() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next") || "/admin/dashboard";
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await login(username, password);
+      navigate(next, { replace: true });
+    } catch (err) {
+      setError(err.message || "Invalid username or password.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-ink px-6 py-24 text-cream">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-charcoal-lighter bg-charcoal p-8">
+        <h1 className="mb-6 font-display text-2xl tracking-wide">
+          Staff <span className="text-gold">Login</span>
+        </h1>
+        {error && <p className="mb-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
+        <div className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Username"
+            required
+            autoFocus
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className={inputClass}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputClass}
+          />
+          <button type="submit" disabled={submitting} className={buttonClass}>
+            {submitting ? "Logging in…" : "Log In"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

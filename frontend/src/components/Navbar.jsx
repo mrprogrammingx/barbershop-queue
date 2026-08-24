@@ -10,9 +10,7 @@ const LINKS = [
   { to: "/contact", label: "Contact" },
 ];
 
-// Admin dashboard lives on the FastAPI backend, not in this app.
-const API_ORIGIN = import.meta.env.VITE_API_BASE_URL || "http://localhost:8002";
-const ADMIN_LOGIN_URL = `${API_ORIGIN}/login`;
+const ADMIN_LOGIN_URL = "/admin/login";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);

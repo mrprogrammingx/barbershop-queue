@@ -6,10 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.auth import is_admin, verify_credentials
@@ -55,12 +56,6 @@ def _render(request: Request, template_name: str):
     )
 
 
-def _require_admin_page(request: Request, template_name: str):
-    if not is_admin(request):
-        return RedirectResponse(url=f"/login?next={request.url.path}", status_code=303)
-    return _render(request, template_name)
-
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -71,61 +66,28 @@ def checkin_page(request: Request):
     return _render(request, "checkin.html")
 
 
-@app.get("/login")
-def login_page(request: Request, next: str = "/dashboard"):
-    if is_admin(request):
-        return RedirectResponse(url=next, status_code=303)
-    return templates.TemplateResponse(
-        "login.html", {"request": request, "is_admin": False, "next": next, "error": None}
-    )
+class LoginPayload(BaseModel):
+    username: str
+    password: str
 
 
-@app.post("/login")
-def login_submit(
-    request: Request,
-    username: str = Form(...),
-    password: str = Form(...),
-    next: str = Form("/dashboard"),
-):
-    if verify_credentials(username, password):
+@app.get("/api/me")
+def api_me(request: Request):
+    return {"is_admin": is_admin(request)}
+
+
+@app.post("/api/login")
+def api_login(request: Request, payload: LoginPayload):
+    if verify_credentials(payload.username, payload.password):
         request.session["is_admin"] = True
-        return RedirectResponse(url=next, status_code=303)
-    return templates.TemplateResponse(
-        "login.html",
-        {
-            "request": request,
-            "is_admin": False,
-            "next": next,
-            "error": "Invalid username or password.",
-        },
-        status_code=401,
-    )
+        return {"is_admin": True}
+    raise HTTPException(status_code=401, detail="Invalid username or password.")
 
 
-@app.post("/logout")
-def logout(request: Request):
+@app.post("/api/logout")
+def api_logout(request: Request):
     request.session.clear()
-    return RedirectResponse(url="/", status_code=303)
-
-
-@app.get("/dashboard")
-def dashboard_page(request: Request):
-    return _require_admin_page(request, "dashboard.html")
-
-
-@app.get("/history")
-def history_page(request: Request):
-    return _require_admin_page(request, "history.html")
-
-
-@app.get("/customers")
-def customers_page(request: Request):
-    return _require_admin_page(request, "customers.html")
-
-
-@app.get("/settings")
-def settings_page(request: Request):
-    return _require_admin_page(request, "settings.html")
+    return {"is_admin": False}
 
 
 # Serve the built React marketing/booking site (frontend/dist, from `npm run build`)

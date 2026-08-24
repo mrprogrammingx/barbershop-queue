@@ -24,11 +24,10 @@ def _first_available_slot():
 def _login_as_admin():
     admin_client = TestClient(app)
     response = admin_client.post(
-        "/login",
-        data={"username": "admin", "password": "test-password-123", "next": "/dashboard"},
-        follow_redirects=False,
+        "/api/login",
+        json={"username": "admin", "password": "test-password-123"},
     )
-    assert response.status_code == 303
+    assert response.status_code == 200
     return admin_client
 
 
@@ -71,19 +70,19 @@ def test_call_next_as_admin():
 
 def test_login_rejects_bad_credentials():
     response = client.post(
-        "/login",
-        data={"username": "admin", "password": "wrong", "next": "/dashboard"},
+        "/api/login",
+        json={"username": "admin", "password": "wrong"},
     )
     assert response.status_code == 401
 
 
-def test_dashboard_redirects_when_not_logged_in():
-    response = client.get("/dashboard", follow_redirects=False)
-    assert response.status_code == 303
-    assert response.headers["location"].startswith("/login")
-
-
-def test_dashboard_accessible_when_logged_in():
-    admin_client = _login_as_admin()
-    response = admin_client.get("/dashboard")
+def test_me_reports_logged_out_by_default():
+    response = client.get("/api/me")
     assert response.status_code == 200
+    assert response.json() == {"is_admin": False}
+
+
+def test_me_reports_logged_in_after_login():
+    admin_client = _login_as_admin()
+    response = admin_client.get("/api/me")
+    assert response.json() == {"is_admin": True}

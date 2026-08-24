@@ -9,6 +9,12 @@ import Services from "./pages/Services";
 import Gallery from "./pages/Gallery";
 import Booking from "./pages/Booking";
 import Contact from "./pages/Contact";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminHistory from "./pages/admin/AdminHistory";
+import AdminCustomers from "./pages/admin/AdminCustomers";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 function PageTransition({ children }) {
   return (
@@ -23,7 +29,7 @@ function PageTransition({ children }) {
   );
 }
 
-export default function App() {
+function PublicSite() {
   const location = useLocation();
 
   return (
@@ -45,5 +51,20 @@ export default function App() {
         <Footer />
       </div>
     </SmoothScroll>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="history" element={<AdminHistory />} />
+        <Route path="customers" element={<AdminCustomers />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
+      <Route path="/*" element={<PublicSite />} />
+    </Routes>
   );
 }

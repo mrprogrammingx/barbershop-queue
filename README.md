@@ -59,7 +59,7 @@ uvicorn app.main:app --reload --port 8002
 
 - Public site (React, booking included): http://localhost:8002/
 - Simple no-JS check-in fallback: http://localhost:8002/checkin
-- Staff dashboard: http://localhost:8002/dashboard
+- Staff admin panel (React): http://localhost:8002/admin/login
 - Health check: http://localhost:8002/health
 - API docs: http://localhost:8002/docs
 
@@ -68,17 +68,23 @@ This single server serves both the API and the built frontend — see
 
 ## Admin login
 
-The Staff Dashboard, History, Customers, and Settings pages (and their APIs) require an
-admin login. Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`, and a random
-`SESSION_SECRET_KEY` (e.g. `python -c "import secrets; print(secrets.token_hex(32))"`).
-Login is disabled while `ADMIN_PASSWORD` is blank. The check-in page (browsing times,
-booking, and looking up "My Bookings" by phone) stays fully public — no login required.
+The Staff admin panel (Dashboard, History, Customers, Settings — all React pages under
+`/admin/*`, plus their APIs) requires an admin login at `/admin/login`. Set
+`ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`, and a random `SESSION_SECRET_KEY` (e.g.
+`python -c "import secrets; print(secrets.token_hex(32))"`). Login is disabled while
+`ADMIN_PASSWORD` is blank. The public site (browsing times, booking, and looking up "My
+Bookings" by phone) stays fully public — no login required.
+
+Auth is a signed session cookie (`app/auth.py`), checked by the frontend via `GET /api/me`
+and set via `POST /api/login` / `POST /api/logout`. `AdminLayout`
+([frontend/src/components/admin/AdminLayout.jsx](frontend/src/components/admin/AdminLayout.jsx))
+redirects to `/admin/login` client-side whenever `/api/me` reports a logged-out session.
 
 When deploying (e.g. on a VPS), set real values for `ADMIN_USERNAME`/`ADMIN_PASSWORD`/
 `SESSION_SECRET_KEY` in the server's `.env` and serve the app over HTTPS (e.g. behind
 nginx/Caddy with a TLS cert). Set `SESSION_HTTPS_ONLY=true` in that `.env` so the session
-cookie is only ever sent over HTTPS. Then log in at `https://yourdomain.com/login` with
-your admin credentials, same as locally.
+cookie is only ever sent over HTTPS. Then log in at `https://yourdomain.com/admin/login`
+with your admin credentials, same as locally.
 
 ## Email notifications
 
@@ -106,10 +112,9 @@ Re-run `npm run build` after frontend changes; `--reload` only watches Python fi
 it's the same origin, no `CORS_ORIGINS` setup is needed for this mode.
 
 **Separate dev servers (for active frontend development):** run `npm run dev` in `frontend/`
-(defaults to http://localhost:5173) alongside `uvicorn` on 8002. Vite proxies `/queue/*` calls
-to the backend; set `CORS_ORIGINS` here to include the Vite dev URL if you access it directly
-instead. The "Staff Login" nav link points at `VITE_API_BASE_URL` (or `localhost:8002` by
-default) so it reaches the backend's `/login` either way.
+(defaults to http://localhost:5173) alongside `uvicorn` on 8002. Vite proxies `/queue/*`,
+`/admin/*`, and `/api/*` calls to the backend, so the admin panel works the same way as in
+single-server mode — no `CORS_ORIGINS` change needed for this either.
 
 ## Core features
 

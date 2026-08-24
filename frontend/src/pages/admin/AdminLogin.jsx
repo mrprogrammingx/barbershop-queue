@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { login } from "../../lib/adminApi";
 import { inputClass, buttonClass } from "../../components/admin/ui";
 
@@ -55,6 +56,14 @@ export default function AdminLogin() {
             {submitting ? "Logging in…" : "Log In"}
           </button>
         </div>
+
+        <Link
+          to="/"
+          className="mt-6 flex items-center justify-center gap-2 text-sm text-cream/50 transition-colors hover:text-gold"
+        >
+          <ArrowLeft size={14} />
+          View site as a customer
+        </Link>
       </form>
     </div>
   );

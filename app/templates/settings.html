@@ -3,6 +3,11 @@
 {% block content %}
   <h1>Settings</h1>
 
+  <h2>Booking Today</h2>
+  <p class="hint">Turn off new bookings for today only, without changing the regular weekly schedule. Other dates stay bookable.</p>
+  <p id="booking-today-status"></p>
+  <button id="toggle-booking-today" type="button">Toggle Booking Open/Closed</button>
+
   <h2>Days Open</h2>
   <form id="open-days-form">
     <div class="day-checkboxes">
@@ -51,6 +56,24 @@
   </style>
 
   <script>
+    async function loadBookingToday() {
+      const res = await fetch("/admin/shop-status");
+      const status = await res.json();
+      document.getElementById("booking-today-status").textContent =
+        status.booking_open ? "Booking is open for today." : "Booking is closed for today.";
+    }
+
+    document.getElementById("toggle-booking-today").addEventListener("click", async () => {
+      const res = await fetch("/admin/shop-status");
+      const status = await res.json();
+      await fetch("/admin/shop-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ booking_open: !status.booking_open }),
+      });
+      loadBookingToday();
+    });
+
     async function loadOpenDays() {
       const res = await fetch("/admin/shop-status");
       const status = await res.json();
@@ -164,6 +187,7 @@
     document.getElementById("block-date-picker").value = todayIso();
     document.getElementById("block-date-picker").min = todayIso();
 
+    loadBookingToday();
     loadOpenDays();
     loadScheduleSettings();
     loadBlockSlots();

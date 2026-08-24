@@ -5,7 +5,6 @@
 
   <div>
     <button id="call-next">Call Next</button>
-    <button id="toggle-shop">Toggle Booking Open/Closed</button>
     <button id="reset-queue">Reset Queue</button>
   </div>
 
@@ -69,17 +68,6 @@
     document.getElementById("call-next").addEventListener("click", async () => {
       await fetch("/queue/call-next", { method: "POST" });
       loadQueue();
-    });
-
-    document.getElementById("toggle-shop").addEventListener("click", async () => {
-      const res = await fetch("/admin/shop-status");
-      const status = await res.json();
-      await fetch("/admin/shop-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ booking_open: !status.booking_open }),
-      });
-      alert(`Booking is now ${!status.booking_open ? "open" : "closed"} for today`);
     });
 
     document.getElementById("reset-queue").addEventListener("click", async () => {

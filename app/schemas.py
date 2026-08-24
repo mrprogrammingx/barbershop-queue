@@ -1,7 +1,7 @@
 from datetime import datetime, date, time
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 from app.models import QueueStatus
 
@@ -99,12 +99,22 @@ class ShopStatusOut(BaseModel):
     close_time: time
     slot_duration_minutes: int
     capacity_per_slot: int
+    notification_emails: list[str]
 
     @field_validator("open_days", mode="before")
     @classmethod
     def _split_open_days(cls, value):
         if isinstance(value, str):
             return [day for day in value.split(",") if day]
+        return value
+
+    @field_validator("notification_emails", mode="before")
+    @classmethod
+    def _split_notification_emails(cls, value):
+        if isinstance(value, str):
+            return [email for email in value.split(",") if email]
+        if value is None:
+            return []
         return value
 
 
@@ -129,3 +139,7 @@ class ScheduleSettingsUpdate(BaseModel):
     close_time: time
     slot_duration_minutes: int
     capacity_per_slot: int
+
+
+class NotificationEmailsUpdate(BaseModel):
+    notification_emails: list[EmailStr]

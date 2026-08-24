@@ -15,6 +15,7 @@ from app.schemas import (
     BlockedSlotOut,
     IncludedSlotRequest,
     IncludedSlotOut,
+    NotificationEmailsUpdate,
 )
 from app.timezone import today
 
@@ -61,6 +62,15 @@ def set_schedule_settings(payload: ScheduleSettingsUpdate, db: Session = Depends
     status.close_time = payload.close_time
     status.slot_duration_minutes = payload.slot_duration_minutes
     status.capacity_per_slot = payload.capacity_per_slot
+    db.commit()
+    db.refresh(status)
+    return status
+
+
+@router.post("/notification-emails", response_model=ShopStatusOut)
+def set_notification_emails(payload: NotificationEmailsUpdate, db: Session = Depends(get_db)):
+    status = _get_or_create_shop_status(db)
+    status.notification_emails = ",".join(payload.notification_emails)
     db.commit()
     db.refresh(status)
     return status

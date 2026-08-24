@@ -99,4 +99,8 @@ class ShopStatus(Base):
     slot_duration_minutes = Column(Integer, default=30, nullable=False)
     capacity_per_slot = Column(Integer, default=1, nullable=False)
 
+    # Comma-separated email addresses notified on check-in. Falls back to
+    # the ADMIN_EMAIL env var when empty.
+    notification_emails = Column(Text, nullable=True)
+
     updated_at = Column(DateTime, default=now, onupdate=now)

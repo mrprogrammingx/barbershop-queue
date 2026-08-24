@@ -79,10 +79,16 @@ def send_admin_checkin_notification(
     position: int,
     appointment_time: str | None = None,
     note: str | None = None,
+    recipients: list[str] | None = None,
 ) -> bool:
-    """Notify the shop admin that a customer joined the queue. No-op if ADMIN_EMAIL is unset."""
-    if not ADMIN_EMAIL:
-        logger.warning("ADMIN_EMAIL is not set; skipping check-in notification")
+    """Notify the configured notification email(s) that a customer joined the queue.
+
+    Uses `recipients` if given (the admin-configured list), otherwise falls back to
+    the ADMIN_EMAIL env var. No-op if neither is set.
+    """
+    to_emails = recipients or ([ADMIN_EMAIL] if ADMIN_EMAIL else [])
+    if not to_emails:
+        logger.warning("No notification emails configured; skipping check-in notification")
         return False
 
     body = f"{customer_name} ({customer_phone}) joined the queue at position #{position}"
@@ -92,8 +98,7 @@ def send_admin_checkin_notification(
     if note:
         body += f" Note: {note}"
 
-    return send_email(
-        ADMIN_EMAIL,
-        subject="New customer checked in",
-        body=body,
+    return all(
+        send_email(to_email, subject="New customer checked in", body=body)
+        for to_email in to_emails
     )

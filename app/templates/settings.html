@@ -31,6 +31,14 @@
     <button type="submit">Save Slot Settings</button>
   </form>
 
+  <h2>Notification Emails</h2>
+  <p class="hint">Email addresses notified whenever a customer checks in. One per line or comma-separated.</p>
+  <form id="notification-emails-form">
+    <textarea id="notification-emails-input" rows="4" placeholder="owner@yourbarbershop.com"></textarea>
+    <button type="submit">Save Notification Emails</button>
+  </form>
+  <p id="notification-emails-message"></p>
+
   <h2>Manage Time Slots</h2>
   <div>
     <label for="block-date-picker">Date:</label>
@@ -53,6 +61,7 @@
     .hint { font-size: 0.9rem; color: #666; max-width: 480px; }
     .day-checkboxes { display: flex; flex-wrap: wrap; gap: 0.75rem; max-width: 480px; }
     .day-checkboxes label { display: flex; align-items: center; gap: 0.3rem; font-weight: normal; }
+    #notification-emails-input { font-family: inherit; font-size: 1rem; padding: 0.5rem; max-width: 360px; width: 100%; box-sizing: border-box; }
   </style>
 
   <script>
@@ -115,6 +124,35 @@
         }),
       });
       alert("Slot settings saved.");
+    });
+
+    async function loadNotificationEmails() {
+      const res = await fetch("/admin/shop-status");
+      const status = await res.json();
+      document.getElementById("notification-emails-input").value = status.notification_emails.join("\n");
+    }
+
+    document.getElementById("notification-emails-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const raw = document.getElementById("notification-emails-input").value;
+      const notification_emails = raw
+        .split(/[\n,]/)
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+      const message = document.getElementById("notification-emails-message");
+
+      const res = await fetch("/admin/notification-emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notification_emails }),
+      });
+
+      if (res.ok) {
+        message.textContent = "Notification emails saved.";
+      } else {
+        const err = await res.json();
+        message.textContent = `Error: ${JSON.stringify(err.detail)}`;
+      }
     });
 
     function blockDateIso() {
@@ -190,6 +228,7 @@
     loadBookingToday();
     loadOpenDays();
     loadScheduleSettings();
+    loadNotificationEmails();
     loadBlockSlots();
   </script>
 {% endblock %}

@@ -152,8 +152,14 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(entry)
 
+    recipients = [email for email in (shop_status.notification_emails or "").split(",") if email]
     send_admin_checkin_notification(
-        customer.name, customer.phone, entry.position, str(entry.appointment_time), entry.note
+        customer.name,
+        customer.phone,
+        entry.position,
+        str(entry.appointment_time),
+        entry.note,
+        recipients=recipients,
     )
 
     return entry

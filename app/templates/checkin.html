@@ -37,6 +37,12 @@
       return new Date().toISOString().slice(0, 10);
     }
 
+    function tomorrowIso() {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().slice(0, 10);
+    }
+
     function weekdayCodeForDate(isoDate) {
       const [y, m, d] = isoDate.split("-").map(Number);
       return CHECKIN_WEEKDAY_CODES[new Date(y, m - 1, d).getDay()];
@@ -126,8 +132,20 @@
       }
     });
 
-    document.getElementById("date-picker").value = todayIso();
-    document.getElementById("date-picker").min = todayIso();
-    loadSlots();
+    async function initDatePicker() {
+      const picker = document.getElementById("date-picker");
+      picker.min = todayIso();
+      picker.value = todayIso();
+
+      const statusRes = await fetch("/admin/shop-status");
+      const status = await statusRes.json();
+      if (!status.booking_open) {
+        picker.value = tomorrowIso();
+      }
+
+      loadSlots();
+    }
+
+    initDatePicker();
   </script>
 {% endblock %}

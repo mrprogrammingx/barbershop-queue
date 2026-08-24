@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import {
   addIncludedSlot,
   blockSlot,
@@ -169,9 +170,12 @@ export default function AdminSettings() {
               );
             })}
           </div>
-          <button type="submit" className={`${buttonClass} self-start`}>
-            Save Days Open
-          </button>
+          <div className="mt-1 flex items-center gap-3 border-t border-charcoal-lighter pt-4">
+            <button type="submit" className={`${buttonOutlineClass} gap-2`}>
+              <Check size={14} />
+              Save Days Open
+            </button>
+          </div>
         </form>
       </Card>
 

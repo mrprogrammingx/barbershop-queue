@@ -40,6 +40,7 @@ export function Toggle({ checked, onChange, label, disabled = false }) {
 
 const STATUS_STYLES = {
   waiting: "text-gold",
+  next: "text-blue-400",
   called: "text-blue-400",
   in_progress: "text-blue-400",
   done: "text-emerald-400",
@@ -48,8 +49,8 @@ const STATUS_STYLES = {
 
 const STATUS_LABELS = {
   waiting: "Waiting",
-  next: "Next",
-  in_progress: "In Progress",
+  next: "Processing",
+  in_progress: "Processing",
   done: "Done",
   no_show: "No Show",
 };
@@ -57,7 +58,7 @@ const STATUS_LABELS = {
 export function StatusPill({ status }) {
   return (
     <span className={`text-sm font-medium capitalize ${STATUS_STYLES[status] || "text-cream"}`}>
-      {status.replace("_", " ")}
+      {STATUS_LABELS[status] || status.replace("_", " ")}
     </span>
   );
 }

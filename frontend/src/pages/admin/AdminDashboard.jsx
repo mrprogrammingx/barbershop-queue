@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { callNext, getQueue, markDone, markNoShow, resetQueue, setNote } from "../../lib/adminApi";
-import { EntryCard, EntryRow, StatusSelect, Table, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
-import { useAdminUI } from "../../components/admin/AdminUIContext";
+import { getQueue, markDone, markNoShow, setNote } from "../../lib/adminApi";
+import { EntryCard, EntryRow, StatusSelect, Table, inputClass } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
 
 function todayIso() {
@@ -10,12 +9,10 @@ function todayIso() {
 }
 
 export default function AdminDashboard() {
-  const { confirm } = useAdminUI();
   const [date, setDate] = useState(todayIso());
   const [entries, setEntries] = useState([]);
   const [notes, setNotes] = useState({});
   const noteInputFocused = useRef(false);
-  const isToday = date === todayIso();
 
   const loadQueue = useCallback(async () => {
     if (noteInputFocused.current) return;
@@ -47,37 +44,14 @@ export default function AdminDashboard() {
     await setNote(id, notes[id]);
   }
 
-  async function handleCallNext() {
-    await callNext();
-    loadQueue();
-  }
-
-  async function handleReset() {
-    if (await confirm("Reset today's queue? This clears every entry checked in today.")) {
-      await resetQueue();
-      loadQueue();
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-2xl tracking-wide">Staff Dashboard</h1>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <label className="flex items-center gap-2 text-sm text-cream/70">
-          Date:
-          <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
-        </label>
-        <button type="button" disabled={!isToday} onClick={handleCallNext} className={buttonClass}>
-          Call Next
-        </button>
-        <button type="button" disabled={!isToday} onClick={handleReset} className={buttonOutlineClass}>
-          Reset Queue
-        </button>
-      </div>
-      {!isToday && (
-        <p className="max-w-md text-sm text-cream/50">Call Next and Reset Queue only apply to today's queue.</p>
-      )}
+      <label className="flex items-center gap-2 text-sm text-cream/70">
+        Date:
+        <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
+      </label>
 
       {entries.length === 0 ? (
         <p className="text-cream/50">No queue entries for this date.</p>

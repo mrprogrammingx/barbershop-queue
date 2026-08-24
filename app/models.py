@@ -81,12 +81,15 @@ class IncludedSlot(Base):
 
 
 class ShopStatus(Base):
-    """Singleton-style table (one row per day) tracking whether the shop is open."""
+    """Singleton-style row holding shop scheduling settings."""
 
     __tablename__ = "shop_status"
 
     id = Column(Integer, primary_key=True, index=True)
-    is_open = Column(Boolean, default=True, nullable=False)
+
+    # Manual same-day override: turns new bookings for *today* on/off.
+    # Independent of open_days (the weekly schedule) and existing appointments.
+    booking_open = Column(Boolean, default=True, nullable=False)
 
     # Comma-separated weekday codes the shop is open, e.g. "mon,tue,wed,thu,fri"
     open_days = Column(String, default="mon,tue,wed,thu,fri,sat,sun", nullable=False)

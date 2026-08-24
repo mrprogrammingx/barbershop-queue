@@ -47,10 +47,19 @@
       document.getElementById("submit-btn").disabled = true;
 
       const selectedDate = document.getElementById("date-picker").value || todayIso();
-      const res = await fetch(`/queue/available-times?for_date=${selectedDate}`);
       const container = document.getElementById("slots");
       const message = document.getElementById("slots-message");
       container.innerHTML = "";
+
+      const statusRes = await fetch("/admin/shop-status");
+      const status = await statusRes.json();
+
+      if (selectedDate === todayIso() && !status.booking_open) {
+        message.textContent = "Booking is currently closed for today. Please check back later or pick another date.";
+        return;
+      }
+
+      const res = await fetch(`/queue/available-times?for_date=${selectedDate}`);
 
       if (!res.ok) {
         const err = await res.json();
@@ -60,8 +69,6 @@
 
       const slots = await res.json();
       if (slots.length === 0) {
-        const statusRes = await fetch("/admin/shop-status");
-        const status = await statusRes.json();
         const weekdayCode = weekdayCodeForDate(selectedDate);
         if (status.open_days && !status.open_days.includes(weekdayCode)) {
           message.textContent = `The shop is closed on ${CHECKIN_DAY_LABELS[weekdayCode]}. Please pick another date.`;

@@ -5,7 +5,7 @@
 
   <div>
     <button id="call-next">Call Next</button>
-    <button id="toggle-shop">Toggle Shop Open/Closed</button>
+    <button id="toggle-shop">Toggle Booking Open/Closed</button>
     <button id="reset-queue">Reset Queue</button>
   </div>
 
@@ -77,9 +77,9 @@
       await fetch("/admin/shop-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_open: !status.is_open }),
+        body: JSON.stringify({ booking_open: !status.booking_open }),
       });
-      alert(`Shop is now ${!status.is_open ? "open" : "closed"}`);
+      alert(`Booking is now ${!status.booking_open ? "open" : "closed"} for today`);
     });
 
     document.getElementById("reset-queue").addEventListener("click", async () => {

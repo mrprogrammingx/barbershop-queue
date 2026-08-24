@@ -24,7 +24,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 def _get_or_create_shop_status(db: Session) -> ShopStatus:
     status = db.query(ShopStatus).first()
     if status is None:
-        status = ShopStatus(is_open=True)
+        status = ShopStatus(booking_open=True)
         db.add(status)
         db.commit()
         db.refresh(status)
@@ -39,7 +39,7 @@ def get_shop_status(db: Session = Depends(get_db)):
 @router.post("/shop-status", response_model=ShopStatusOut)
 def set_shop_status(payload: ShopStatusUpdate, db: Session = Depends(get_db)):
     status = _get_or_create_shop_status(db)
-    status.is_open = payload.is_open
+    status.booking_open = payload.booking_open
     db.commit()
     db.refresh(status)
     return status

@@ -16,7 +16,7 @@ router = APIRouter(prefix="/queue", tags=["queue"])
 def _get_or_create_shop_status(db: Session) -> ShopStatus:
     status = db.query(ShopStatus).first()
     if status is None:
-        status = ShopStatus(is_open=True)
+        status = ShopStatus(booking_open=True)
         db.add(status)
         db.commit()
         db.refresh(status)
@@ -112,8 +112,8 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Cannot book a date in the past")
 
     shop_status = _get_or_create_shop_status(db)
-    if payload.appointment_date == today and not shop_status.is_open:
-        raise HTTPException(status_code=400, detail="Shop is currently closed")
+    if payload.appointment_date == today and not shop_status.booking_open:
+        raise HTTPException(status_code=400, detail="Booking is currently closed for today")
 
     if payload.appointment_time not in _generate_slots(db, shop_status, payload.appointment_date):
         raise HTTPException(status_code=400, detail="Invalid appointment time")

@@ -50,12 +50,14 @@
 
         const todayCode = WEEKDAY_CODES[new Date().getDay()];
         const openToday = data.open_days && data.open_days.includes(todayCode);
-        const effectivelyOpen = data.is_open && openToday;
+        const effectivelyOpen = data.booking_open && openToday;
 
-        if (data.is_open && !openToday) {
+        if (!openToday) {
           banner.append(document.createTextNode(`Closed today (${DAY_LABELS[todayCode]})`));
+        } else if (!data.booking_open) {
+          banner.append(document.createTextNode("Booking is closed for today"));
         } else {
-          banner.append(document.createTextNode(data.is_open ? "Shop is open" : "Shop is closed"));
+          banner.append(document.createTextNode("Booking is open"));
         }
 
         if (data.open_days && data.open_days.length > 0) {

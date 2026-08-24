@@ -93,7 +93,7 @@ class IncludedSlotOut(BaseModel):
 class ShopStatusOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    is_open: bool
+    booking_open: bool
     open_days: list[str]
     open_time: time
     close_time: time
@@ -109,7 +109,7 @@ class ShopStatusOut(BaseModel):
 
 
 class ShopStatusUpdate(BaseModel):
-    is_open: bool
+    booking_open: bool
 
 
 class OpenDaysUpdate(BaseModel):

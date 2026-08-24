@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Customer, QueueEntry, QueueStatus, ShopStatus, BlockedSlot
+from app.models import Customer, QueueEntry, QueueStatus, ShopStatus, BlockedSlot, IncludedSlot
 from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate, AvailableSlotOut
 from app.services.email import send_admin_checkin_notification
 from app.timezone import today as get_today
@@ -23,7 +23,7 @@ def _get_or_create_shop_status(db: Session) -> ShopStatus:
     return status
 
 
-def _generate_slots(shop_status: ShopStatus) -> list[time]:
+def _base_slots(shop_status: ShopStatus) -> list[time]:
     slots = []
     cursor = datetime.combine(date.today(), shop_status.open_time)
     end = datetime.combine(date.today(), shop_status.close_time)
@@ -32,6 +32,20 @@ def _generate_slots(shop_status: ShopStatus) -> list[time]:
         slots.append(cursor.time())
         cursor += step
     return slots
+
+
+def _included_slot_times(db: Session, queue_date: date) -> set[time]:
+    rows = (
+        db.query(IncludedSlot.included_time)
+        .filter(IncludedSlot.included_date == queue_date)
+        .all()
+    )
+    return {row[0] for row in rows}
+
+
+def _generate_slots(db: Session, shop_status: ShopStatus, queue_date: date) -> list[time]:
+    slots = set(_base_slots(shop_status)) | _included_slot_times(db, queue_date)
+    return sorted(slots)
 
 
 def _slot_booked_counts(db: Session, queue_date: date) -> dict[time, int]:
@@ -63,6 +77,8 @@ def get_available_times(for_date: date | None = None, db: Session = Depends(get_
     shop_status = _get_or_create_shop_status(db)
     booked_counts = _slot_booked_counts(db, target_date)
     blocked_times = _blocked_slot_times(db, target_date)
+    included_times = _included_slot_times(db, target_date)
+    base_times = set(_base_slots(shop_status))
 
     return [
         AvailableSlotOut(
@@ -70,9 +86,10 @@ def get_available_times(for_date: date | None = None, db: Session = Depends(get_
             capacity=shop_status.capacity_per_slot,
             booked=booked_counts.get(slot, 0),
             blocked=slot in blocked_times,
+            included=slot in included_times and slot not in base_times,
             available=slot not in blocked_times and booked_counts.get(slot, 0) < shop_status.capacity_per_slot,
         )
-        for slot in _generate_slots(shop_status)
+        for slot in _generate_slots(db, shop_status, target_date)
     ]
 
 
@@ -87,7 +104,7 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     if payload.appointment_date == today and not shop_status.is_open:
         raise HTTPException(status_code=400, detail="Shop is currently closed")
 
-    if payload.appointment_time not in _generate_slots(shop_status):
+    if payload.appointment_time not in _generate_slots(db, shop_status, payload.appointment_date):
         raise HTTPException(status_code=400, detail="Invalid appointment time")
 
     if payload.appointment_time in _blocked_slot_times(db, payload.appointment_date):

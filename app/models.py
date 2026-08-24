@@ -68,6 +68,18 @@ class BlockedSlot(Base):
     created_at = Column(DateTime, default=now)
 
 
+class IncludedSlot(Base):
+    """A specific date+time slot the admin has added beyond normal open/close hours."""
+
+    __tablename__ = "included_slots"
+    __table_args__ = (UniqueConstraint("included_date", "included_time", name="uq_included_slot"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    included_date = Column(Date, nullable=False, index=True)
+    included_time = Column(Time, nullable=False)
+    created_at = Column(DateTime, default=now)
+
+
 class ShopStatus(Base):
     """Singleton-style table (one row per day) tracking whether the shop is open."""
 

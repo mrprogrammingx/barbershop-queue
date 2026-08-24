@@ -24,12 +24,18 @@
     <button type="submit">Save Slot Settings</button>
   </form>
 
-  <h2>Block / Unblock Time Slots</h2>
+  <h2>Manage Time Slots</h2>
   <div>
     <label for="block-date-picker">Date:</label>
     <input type="date" id="block-date-picker">
   </div>
+  <p class="hint">Click a normal time to block/unblock it. Extra times (blue) can be removed by clicking them.</p>
   <div id="block-slots" class="slots"></div>
+
+  <form id="add-time-form">
+    <input type="time" id="add-time-input" required>
+    <button type="submit">Add Extra Time for This Date</button>
+  </form>
 
   <table>
     <thead>
@@ -42,6 +48,9 @@
     .slots { display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: 480px; margin-bottom: 1rem; }
     .slot-btn { padding: 0.5rem 0.75rem; border: 1px solid #999; background: #fff; cursor: pointer; border-radius: 4px; }
     .slot-btn.blocked { background: #b02a2a; color: #fff; border-color: #b02a2a; text-decoration: line-through; }
+    .slot-btn.included { background: #1565c0; color: #fff; border-color: #1565c0; }
+    .slot-btn.included.blocked { background: #6a1b9a; border-color: #6a1b9a; }
+    .hint { font-size: 0.9rem; color: #666; max-width: 480px; }
   </style>
 
   <script>
@@ -174,30 +183,54 @@
       for (const slot of slots) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "slot-btn" + (slot.blocked ? " blocked" : "");
+        let className = "slot-btn";
+        if (slot.blocked) className += " blocked";
+        if (slot.included) className += " included";
+        btn.className = className;
         btn.textContent = slot.time.slice(0, 5);
-        btn.addEventListener("click", () => toggleBlock(slot.time, slot.blocked));
+        btn.title = slot.included ? "Extra time — click to remove" : "Click to block/unblock";
+        btn.addEventListener("click", () => {
+          if (slot.included) {
+            removeExtraTime(slot.time);
+          } else {
+            toggleBlock(slot.time, slot.blocked);
+          }
+        });
         container.appendChild(btn);
       }
     }
 
     async function toggleBlock(time, isBlocked) {
       const payload = { date: blockDateIso(), time };
-      if (isBlocked) {
-        await fetch("/admin/blocked-slots", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        await fetch("/admin/blocked-slots", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      }
+      await fetch("/admin/blocked-slots", {
+        method: isBlocked ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       loadBlockSlots();
     }
+
+    async function removeExtraTime(time) {
+      await fetch("/admin/included-slots", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: blockDateIso(), time }),
+      });
+      loadBlockSlots();
+    }
+
+    document.getElementById("add-time-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const time = document.getElementById("add-time-input").value;
+      if (!time) return;
+      await fetch("/admin/included-slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: blockDateIso(), time }),
+      });
+      document.getElementById("add-time-input").value = "";
+      loadBlockSlots();
+    });
 
     document.getElementById("block-date-picker").addEventListener("change", loadBlockSlots);
     document.getElementById("block-date-picker").value = todayIso();

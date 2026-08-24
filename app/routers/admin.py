@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import QueueEntry, ShopStatus, QueueStatus, BlockedSlot
+from app.models import QueueEntry, ShopStatus, QueueStatus, BlockedSlot, IncludedSlot
 from app.schemas import (
     ShopStatusOut,
     ShopStatusUpdate,
@@ -13,6 +13,8 @@ from app.schemas import (
     ScheduleSettingsUpdate,
     BlockedSlotRequest,
     BlockedSlotOut,
+    IncludedSlotRequest,
+    IncludedSlotOut,
 )
 from app.timezone import today
 
@@ -108,6 +110,52 @@ def unblock_slot(payload: BlockedSlotRequest, db: Session = Depends(get_db)):
     db.delete(blocked)
     db.commit()
     return {"unblocked": True}
+
+
+@router.get("/included-slots", response_model=list[IncludedSlotOut])
+def list_included_slots(for_date: date, db: Session = Depends(get_db)):
+    return (
+        db.query(IncludedSlot)
+        .filter(IncludedSlot.included_date == for_date)
+        .order_by(IncludedSlot.included_time.asc())
+        .all()
+    )
+
+
+@router.post("/included-slots", response_model=IncludedSlotOut)
+def include_slot(payload: IncludedSlotRequest, db: Session = Depends(get_db)):
+    existing = (
+        db.query(IncludedSlot)
+        .filter(IncludedSlot.included_date == payload.date, IncludedSlot.included_time == payload.time)
+        .first()
+    )
+    if existing is not None:
+        return existing
+
+    included = IncludedSlot(included_date=payload.date, included_time=payload.time)
+    db.add(included)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Slot already included")
+    db.refresh(included)
+    return included
+
+
+@router.delete("/included-slots")
+def exclude_slot(payload: IncludedSlotRequest, db: Session = Depends(get_db)):
+    included = (
+        db.query(IncludedSlot)
+        .filter(IncludedSlot.included_date == payload.date, IncludedSlot.included_time == payload.time)
+        .first()
+    )
+    if included is None:
+        raise HTTPException(status_code=404, detail="Slot is not included")
+
+    db.delete(included)
+    db.commit()
+    return {"excluded": True}
 
 
 @router.post("/reset-queue")

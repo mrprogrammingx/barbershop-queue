@@ -80,7 +80,7 @@
           <td>${entry.customer.name}</td>
           <td>${entry.customer.phone}</td>
           <td><input type="text" class="note-input" data-id="${entry.id}" placeholder="Note"></td>
-          <td class="status">${entry.status}</td>
+          <td class="status">${entry.status.replace("_", " ")}</td>
           <td>
             <button data-id="${entry.id}" class="done-btn">Done</button>
             <button data-id="${entry.id}" class="noshow-btn">No-show</button>

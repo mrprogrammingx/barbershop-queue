@@ -50,7 +50,7 @@
           <td>${entry.customer.name}</td>
           <td>${entry.customer.phone}</td>
           <td class="note-cell"></td>
-          <td class="status">${entry.status}</td>
+          <td class="status">${entry.status.replace("_", " ")}</td>
           <td>${new Date(entry.created_at).toLocaleTimeString()}</td>
         `;
         tr.querySelector(".note-cell").textContent = entry.note || "";

@@ -9,59 +9,12 @@
     <button id="reset-queue">Reset Queue</button>
   </div>
 
-  <h2>Days Open</h2>
-  <form id="open-days-form">
-    <div class="day-checkboxes">
-      <label><input type="checkbox" name="open_days" value="mon"> Monday</label>
-      <label><input type="checkbox" name="open_days" value="tue"> Tuesday</label>
-      <label><input type="checkbox" name="open_days" value="wed"> Wednesday</label>
-      <label><input type="checkbox" name="open_days" value="thu"> Thursday</label>
-      <label><input type="checkbox" name="open_days" value="fri"> Friday</label>
-      <label><input type="checkbox" name="open_days" value="sat"> Saturday</label>
-      <label><input type="checkbox" name="open_days" value="sun"> Sunday</label>
-    </div>
-    <button type="submit">Save Days Open</button>
-  </form>
-
-  <h2>Appointment Slots</h2>
-  <form id="schedule-form">
-    <label>Open <input type="time" id="open-time-input" required></label>
-    <label>Close <input type="time" id="close-time-input" required></label>
-    <label>Slot length (minutes) <input type="number" id="slot-duration-input" min="5" step="5" required></label>
-    <label>Capacity per slot <input type="number" id="capacity-input" min="1" step="1" required></label>
-    <button type="submit">Save Slot Settings</button>
-  </form>
-
-  <h2>Manage Time Slots</h2>
-  <div>
-    <label for="block-date-picker">Date:</label>
-    <input type="date" id="block-date-picker">
-  </div>
-  <p class="hint">Click a normal time to block/unblock it. Extra times (blue) can be removed by clicking them.</p>
-  <div id="block-slots" class="slots"></div>
-
-  <form id="add-time-form">
-    <input type="time" id="add-time-input" required>
-    <button type="submit">Add Extra Time for This Date</button>
-  </form>
-
   <table>
     <thead>
       <tr><th>#</th><th>Time</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Actions</th></tr>
     </thead>
     <tbody id="queue-body"></tbody>
   </table>
-
-  <style>
-    .slots { display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: 480px; margin-bottom: 1rem; }
-    .slot-btn { padding: 0.5rem 0.75rem; border: 1px solid #999; background: #fff; cursor: pointer; border-radius: 4px; }
-    .slot-btn.blocked { background: #b02a2a; color: #fff; border-color: #b02a2a; text-decoration: line-through; }
-    .slot-btn.included { background: #1565c0; color: #fff; border-color: #1565c0; }
-    .slot-btn.included.blocked { background: #6a1b9a; border-color: #6a1b9a; }
-    .hint { font-size: 0.9rem; color: #666; max-width: 480px; }
-    .day-checkboxes { display: flex; flex-wrap: wrap; gap: 0.75rem; max-width: 480px; }
-    .day-checkboxes label { display: flex; align-items: center; gap: 0.3rem; font-weight: normal; }
-  </style>
 
   <script>
     async function loadQueue() {
@@ -136,123 +89,7 @@
       }
     });
 
-    async function loadOpenDays() {
-      const res = await fetch("/admin/shop-status");
-      const status = await res.json();
-      document.querySelectorAll('input[name="open_days"]').forEach(cb => {
-        cb.checked = status.open_days.includes(cb.value);
-      });
-    }
-
-    document.getElementById("open-days-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const open_days = Array.from(document.querySelectorAll('input[name="open_days"]:checked')).map(cb => cb.value);
-      await fetch("/admin/open-days", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ open_days }),
-      });
-      alert("Days open saved.");
-    });
-
-    async function loadScheduleSettings() {
-      const res = await fetch("/admin/shop-status");
-      const status = await res.json();
-      document.getElementById("open-time-input").value = status.open_time.slice(0, 5);
-      document.getElementById("close-time-input").value = status.close_time.slice(0, 5);
-      document.getElementById("slot-duration-input").value = status.slot_duration_minutes;
-      document.getElementById("capacity-input").value = status.capacity_per_slot;
-    }
-
-    document.getElementById("schedule-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      await fetch("/admin/schedule-settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          open_time: document.getElementById("open-time-input").value,
-          close_time: document.getElementById("close-time-input").value,
-          slot_duration_minutes: parseInt(document.getElementById("slot-duration-input").value, 10),
-          capacity_per_slot: parseInt(document.getElementById("capacity-input").value, 10),
-        }),
-      });
-      alert("Slot settings saved.");
-    });
-
-    function blockDateIso() {
-      return document.getElementById("block-date-picker").value || todayIso();
-    }
-
-    function todayIso() {
-      return new Date().toISOString().slice(0, 10);
-    }
-
-    async function loadBlockSlots() {
-      const res = await fetch(`/queue/available-times?for_date=${blockDateIso()}`);
-      const slots = await res.json();
-      const container = document.getElementById("block-slots");
-      container.innerHTML = "";
-
-      for (const slot of slots) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        let className = "slot-btn";
-        if (slot.blocked) className += " blocked";
-        if (slot.included) className += " included";
-        btn.className = className;
-        btn.textContent = slot.time.slice(0, 5);
-        btn.title = slot.included ? "Extra time — click to remove" : "Click to block/unblock";
-        btn.addEventListener("click", () => {
-          if (slot.included) {
-            removeExtraTime(slot.time);
-          } else {
-            toggleBlock(slot.time, slot.blocked);
-          }
-        });
-        container.appendChild(btn);
-      }
-    }
-
-    async function toggleBlock(time, isBlocked) {
-      const payload = { date: blockDateIso(), time };
-      await fetch("/admin/blocked-slots", {
-        method: isBlocked ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      loadBlockSlots();
-    }
-
-    async function removeExtraTime(time) {
-      await fetch("/admin/included-slots", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: blockDateIso(), time }),
-      });
-      loadBlockSlots();
-    }
-
-    document.getElementById("add-time-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const time = document.getElementById("add-time-input").value;
-      if (!time) return;
-      await fetch("/admin/included-slots", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: blockDateIso(), time }),
-      });
-      document.getElementById("add-time-input").value = "";
-      loadBlockSlots();
-    });
-
-    document.getElementById("block-date-picker").addEventListener("change", loadBlockSlots);
-    document.getElementById("block-date-picker").value = todayIso();
-    document.getElementById("block-date-picker").min = todayIso();
-
     loadQueue();
-    loadOpenDays();
-    loadScheduleSettings();
-    loadBlockSlots();
     setInterval(loadQueue, 5000);
   </script>
 {% endblock %}

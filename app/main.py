@@ -42,3 +42,8 @@ def history_page(request: Request):
 @app.get("/customers")
 def customers_page(request: Request):
     return templates.TemplateResponse("customers.html", {"request": request})
+
+
+@app.get("/settings")
+def settings_page(request: Request):
+    return templates.TemplateResponse("settings.html", {"request": request})

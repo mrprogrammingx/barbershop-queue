@@ -1,13 +1,18 @@
-from fastapi import APIRouter, Depends
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import QueueEntry, ShopStatus, QueueStatus
+from app.models import QueueEntry, ShopStatus, QueueStatus, BlockedSlot
 from app.schemas import (
     ShopStatusOut,
     ShopStatusUpdate,
     ShopHoursUpdate,
     ScheduleSettingsUpdate,
+    BlockedSlotRequest,
+    BlockedSlotOut,
 )
 from app.timezone import today
 
@@ -57,6 +62,52 @@ def set_schedule_settings(payload: ScheduleSettingsUpdate, db: Session = Depends
     db.commit()
     db.refresh(status)
     return status
+
+
+@router.get("/blocked-slots", response_model=list[BlockedSlotOut])
+def list_blocked_slots(for_date: date, db: Session = Depends(get_db)):
+    return (
+        db.query(BlockedSlot)
+        .filter(BlockedSlot.blocked_date == for_date)
+        .order_by(BlockedSlot.blocked_time.asc())
+        .all()
+    )
+
+
+@router.post("/blocked-slots", response_model=BlockedSlotOut)
+def block_slot(payload: BlockedSlotRequest, db: Session = Depends(get_db)):
+    existing = (
+        db.query(BlockedSlot)
+        .filter(BlockedSlot.blocked_date == payload.date, BlockedSlot.blocked_time == payload.time)
+        .first()
+    )
+    if existing is not None:
+        return existing
+
+    blocked = BlockedSlot(blocked_date=payload.date, blocked_time=payload.time)
+    db.add(blocked)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Slot already blocked")
+    db.refresh(blocked)
+    return blocked
+
+
+@router.delete("/blocked-slots")
+def unblock_slot(payload: BlockedSlotRequest, db: Session = Depends(get_db)):
+    blocked = (
+        db.query(BlockedSlot)
+        .filter(BlockedSlot.blocked_date == payload.date, BlockedSlot.blocked_time == payload.time)
+        .first()
+    )
+    if blocked is None:
+        raise HTTPException(status_code=404, detail="Slot is not blocked")
+
+    db.delete(blocked)
+    db.commit()
+    return {"unblocked": True}
 
 
 @router.post("/reset-queue")

@@ -12,6 +12,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Boolean,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -53,6 +54,18 @@ class QueueEntry(Base):
     updated_at = Column(DateTime, default=now, onupdate=now)
 
     customer = relationship("Customer", back_populates="queue_entries")
+
+
+class BlockedSlot(Base):
+    """A specific date+time slot the admin has excluded from booking (e.g. a lunch break)."""
+
+    __tablename__ = "blocked_slots"
+    __table_args__ = (UniqueConstraint("blocked_date", "blocked_time", name="uq_blocked_slot"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    blocked_date = Column(Date, nullable=False, index=True)
+    blocked_time = Column(Time, nullable=False)
+    created_at = Column(DateTime, default=now)
 
 
 class ShopStatus(Base):

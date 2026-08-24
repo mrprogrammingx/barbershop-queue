@@ -24,12 +24,25 @@
     <button type="submit">Save Slot Settings</button>
   </form>
 
+  <h2>Block / Unblock Time Slots</h2>
+  <div>
+    <label for="block-date-picker">Date:</label>
+    <input type="date" id="block-date-picker">
+  </div>
+  <div id="block-slots" class="slots"></div>
+
   <table>
     <thead>
       <tr><th>#</th><th>Time</th><th>Name</th><th>Phone</th><th>Note</th><th>Status</th><th>Actions</th></tr>
     </thead>
     <tbody id="queue-body"></tbody>
   </table>
+
+  <style>
+    .slots { display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: 480px; margin-bottom: 1rem; }
+    .slot-btn { padding: 0.5rem 0.75rem; border: 1px solid #999; background: #fff; cursor: pointer; border-radius: 4px; }
+    .slot-btn.blocked { background: #b02a2a; color: #fff; border-color: #b02a2a; text-decoration: line-through; }
+  </style>
 
   <script>
     async function loadQueue() {
@@ -144,9 +157,56 @@
       alert("Slot settings saved.");
     });
 
+    function blockDateIso() {
+      return document.getElementById("block-date-picker").value || todayIso();
+    }
+
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    async function loadBlockSlots() {
+      const res = await fetch(`/queue/available-times?for_date=${blockDateIso()}`);
+      const slots = await res.json();
+      const container = document.getElementById("block-slots");
+      container.innerHTML = "";
+
+      for (const slot of slots) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "slot-btn" + (slot.blocked ? " blocked" : "");
+        btn.textContent = slot.time.slice(0, 5);
+        btn.addEventListener("click", () => toggleBlock(slot.time, slot.blocked));
+        container.appendChild(btn);
+      }
+    }
+
+    async function toggleBlock(time, isBlocked) {
+      const payload = { date: blockDateIso(), time };
+      if (isBlocked) {
+        await fetch("/admin/blocked-slots", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetch("/admin/blocked-slots", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+      loadBlockSlots();
+    }
+
+    document.getElementById("block-date-picker").addEventListener("change", loadBlockSlots);
+    document.getElementById("block-date-picker").value = todayIso();
+    document.getElementById("block-date-picker").min = todayIso();
+
     loadQueue();
     loadHours();
     loadScheduleSettings();
+    loadBlockSlots();
     setInterval(loadQueue, 5000);
   </script>
 {% endblock %}

@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Customer, QueueEntry, QueueStatus, ShopStatus
+from app.models import Customer, QueueEntry, QueueStatus, ShopStatus, BlockedSlot
 from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate, AvailableSlotOut
 from app.services.email import send_admin_checkin_notification
 from app.timezone import today as get_today
@@ -45,6 +45,15 @@ def _slot_booked_counts(db: Session, queue_date: date) -> dict[time, int]:
     return {slot_time: count for slot_time, count in rows}
 
 
+def _blocked_slot_times(db: Session, queue_date: date) -> set[time]:
+    rows = (
+        db.query(BlockedSlot.blocked_time)
+        .filter(BlockedSlot.blocked_date == queue_date)
+        .all()
+    )
+    return {row[0] for row in rows}
+
+
 @router.get("/available-times", response_model=list[AvailableSlotOut])
 def get_available_times(for_date: date | None = None, db: Session = Depends(get_db)):
     target_date = for_date or get_today()
@@ -53,13 +62,15 @@ def get_available_times(for_date: date | None = None, db: Session = Depends(get_
 
     shop_status = _get_or_create_shop_status(db)
     booked_counts = _slot_booked_counts(db, target_date)
+    blocked_times = _blocked_slot_times(db, target_date)
 
     return [
         AvailableSlotOut(
             time=slot,
             capacity=shop_status.capacity_per_slot,
             booked=booked_counts.get(slot, 0),
-            available=booked_counts.get(slot, 0) < shop_status.capacity_per_slot,
+            blocked=slot in blocked_times,
+            available=slot not in blocked_times and booked_counts.get(slot, 0) < shop_status.capacity_per_slot,
         )
         for slot in _generate_slots(shop_status)
     ]
@@ -78,6 +89,9 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
 
     if payload.appointment_time not in _generate_slots(shop_status):
         raise HTTPException(status_code=400, detail="Invalid appointment time")
+
+    if payload.appointment_time in _blocked_slot_times(db, payload.appointment_date):
+        raise HTTPException(status_code=400, detail="That time is not available")
 
     booked_count = _slot_booked_counts(db, payload.appointment_date).get(payload.appointment_time, 0)
     if booked_count >= shop_status.capacity_per_slot:

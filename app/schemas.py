@@ -57,7 +57,21 @@ class AvailableSlotOut(BaseModel):
     time: time
     capacity: int
     booked: int
+    blocked: bool
     available: bool
+
+
+class BlockedSlotRequest(BaseModel):
+    date: date
+    time: time
+
+
+class BlockedSlotOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    blocked_date: date
+    blocked_time: time
 
 
 class ShopStatusOut(BaseModel):

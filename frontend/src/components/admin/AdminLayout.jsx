@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
+import { LayoutDashboard, History, Users, Settings, LogOut } from "lucide-react";
 import { getMe, logout } from "../../lib/adminApi";
 import { AdminUIProvider } from "./AdminUIContext";
 
 const LINKS = [
-  { to: "/admin/dashboard", label: "Dashboard" },
-  { to: "/admin/history", label: "History" },
-  { to: "/admin/customers", label: "Customers" },
-  { to: "/admin/settings", label: "Settings" },
+  { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/history", label: "History", icon: History },
+  { to: "/admin/customers", label: "Customers", icon: Users },
+  { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminLayout() {
@@ -36,15 +37,20 @@ export default function AdminLayout() {
     return <Navigate to={`/admin/login?next=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
+  async function handleLogout() {
+    await logout();
+    setStatus("out");
+  }
+
   return (
     <AdminUIProvider>
     <div className="min-h-screen bg-ink text-cream">
       <header className="border-b border-charcoal-lighter px-6 py-4">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <span className="font-display text-xl tracking-wide">
             Parsa <span className="text-gold">Admin</span>
           </span>
-          <nav className="flex flex-wrap items-center gap-6">
+          <nav className="hidden items-center gap-6 md:flex">
             {LINKS.map((link) => (
               <NavLink
                 key={link.to}
@@ -60,20 +66,54 @@ export default function AdminLayout() {
             ))}
             <button
               type="button"
-              onClick={async () => {
-                await logout();
-                setStatus("out");
-              }}
+              onClick={handleLogout}
               className="font-body text-sm font-medium uppercase tracking-wider text-cream/50 underline transition-colors hover:text-gold"
             >
               Log Out
             </button>
           </nav>
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Log out"
+            className="text-cream/50 transition-colors hover:text-gold md:hidden"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-6 py-10 pb-28 md:pb-10">
         <Outlet />
       </main>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-2 md:hidden">
+        <div className="mx-auto flex max-w-sm items-center justify-around rounded-full border border-charcoal-lighter bg-charcoal/95 px-2 py-2.5 shadow-2xl backdrop-blur-md">
+          {LINKS.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className="flex flex-1 flex-col items-center gap-1 py-1"
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon size={22} strokeWidth={isActive ? 2.4 : 1.8} className={isActive ? "text-gold" : "text-cream/50"} />
+                    <span
+                      className={`text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+                        isActive ? "text-gold" : "text-cream/50"
+                      }`}
+                    >
+                      {link.label}
+                    </span>
+                    <span className={`mt-0.5 h-1 w-1 rounded-full transition-colors ${isActive ? "bg-gold" : "bg-transparent"}`} />
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+      </nav>
     </div>
     </AdminUIProvider>
   );

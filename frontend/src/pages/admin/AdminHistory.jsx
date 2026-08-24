@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { getHistoryDates, getHistoryForDate } from "../../lib/adminApi";
+import { useCallback, useEffect, useState } from "react";
+import { Check, X } from "lucide-react";
+import { getHistoryDates, getHistoryForDate, markDone, markNoShow } from "../../lib/adminApi";
 import { EntryCard, EntryRow, StatusPill, Table } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
 
@@ -12,14 +13,25 @@ export default function AdminHistory() {
   const [dates, setDates] = useState([]);
   const [date, setDate] = useState(todayIso());
   const [entries, setEntries] = useState([]);
+  const isToday = date === todayIso();
 
   useEffect(() => {
     getHistoryDates().then(setDates);
   }, []);
 
-  useEffect(() => {
+  const loadHistory = useCallback(() => {
     if (date) getHistoryForDate(date).then(setEntries);
   }, [date]);
+
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+
+  async function handleStatus(id, action) {
+    if (action === "done") await markDone(id);
+    else await markNoShow(id);
+    loadHistory();
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,7 +50,7 @@ export default function AdminHistory() {
       ) : (
         <>
           <div className="hidden md:block">
-            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In"]}>
+            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In", ...(isToday ? ["Actions"] : [])]}>
               {entries.map((entry) => (
                 <tr key={entry.id} className="border-b border-charcoal-lighter">
                   <td className="px-3 py-2">{entry.position}</td>
@@ -50,6 +62,28 @@ export default function AdminHistory() {
                     <StatusPill status={entry.status} />
                   </td>
                   <td className="px-3 py-2">{new Date(entry.created_at).toLocaleTimeString()}</td>
+                  {isToday && (
+                    <td className="px-3 py-2">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          aria-label="Mark done"
+                          onClick={() => handleStatus(entry.id, "done")}
+                          className="rounded-full border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Mark no-show"
+                          onClick={() => handleStatus(entry.id, "no-show")}
+                          className="rounded-full border border-red-500/40 p-1.5 text-red-400 transition-colors hover:bg-red-500/10"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </Table>
@@ -60,6 +94,28 @@ export default function AdminHistory() {
               <EntryCard
                 key={entry.id}
                 title={`#${entry.position} · ${entry.appointment_time.slice(0, 5)}`}
+                headerActions={
+                  isToday && (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="Mark done"
+                        onClick={() => handleStatus(entry.id, "done")}
+                        className="rounded-full border border-emerald-500/40 p-1.5 text-emerald-400 transition-colors hover:bg-emerald-500/10"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Mark no-show"
+                        onClick={() => handleStatus(entry.id, "no-show")}
+                        className="rounded-full border border-red-500/40 p-1.5 text-red-400 transition-colors hover:bg-red-500/10"
+                      >
+                        <X size={16} />
+                      </button>
+                    </>
+                  )
+                }
               >
                 <EntryRow label="Name">{entry.customer.name}</EntryRow>
                 <EntryRow label="Phone">{entry.customer.phone}</EntryRow>

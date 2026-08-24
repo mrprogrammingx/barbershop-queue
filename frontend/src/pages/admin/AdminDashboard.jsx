@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { callNext, getQueue, markDone, markNoShow, resetQueue, setNote } from "../../lib/adminApi";
 import { Table, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
+import { useAdminUI } from "../../components/admin/AdminUIContext";
+import DatePickerField from "../../components/admin/DatePickerField";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
 export default function AdminDashboard() {
+  const { confirm } = useAdminUI();
   const [date, setDate] = useState(todayIso());
   const [entries, setEntries] = useState([]);
   const [notes, setNotes] = useState({});
@@ -49,7 +52,7 @@ export default function AdminDashboard() {
   }
 
   async function handleReset() {
-    if (window.confirm("Reset today's queue?")) {
+    if (await confirm("Reset today's queue? This clears every entry checked in today.")) {
       await resetQueue();
       loadQueue();
     }
@@ -62,7 +65,7 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm text-cream/70">
           Date:
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+          <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
         </label>
         <button type="button" disabled={!isToday} onClick={handleCallNext} className={buttonClass}>
           Call Next

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getHistoryDates, getHistoryForDate } from "../../lib/adminApi";
-import { Table, inputClass } from "../../components/admin/ui";
+import { Table } from "../../components/admin/ui";
+import DatePickerField from "../../components/admin/DatePickerField";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -25,7 +26,7 @@ export default function AdminHistory() {
 
       <label className="flex items-center gap-2 text-sm text-cream/70">
         Date:
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+        <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
       </label>
       <p className="text-sm text-cream/50">
         {dates.length > 0 ? `Dates with history: ${dates.join(", ")}` : "No past queue history yet."}

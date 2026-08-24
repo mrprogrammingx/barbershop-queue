@@ -12,6 +12,8 @@ import {
   unblockSlot,
 } from "../../lib/adminApi";
 import { Card, Toggle, buttonClass, buttonOutlineClass, inputClass } from "../../components/admin/ui";
+import DatePickerField from "../../components/admin/DatePickerField";
+import { useAdminUI } from "../../components/admin/AdminUIContext";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -28,6 +30,7 @@ const DAY_OPTIONS = [
 ];
 
 export default function AdminSettings() {
+  const { toast } = useAdminUI();
   const [status, setStatus] = useState(null);
   const [openDays, setOpenDaysState] = useState([]);
   const [schedule, setSchedule] = useState({ open_time: "", close_time: "", slot_duration_minutes: 30, capacity_per_slot: 1 });
@@ -76,7 +79,7 @@ export default function AdminSettings() {
   async function saveOpenDays(e) {
     e.preventDefault();
     await setOpenDays(openDays);
-    alert("Days open saved.");
+    toast("Days open saved.");
   }
 
   async function saveSchedule(e) {
@@ -87,7 +90,7 @@ export default function AdminSettings() {
       slot_duration_minutes: Number(schedule.slot_duration_minutes),
       capacity_per_slot: Number(schedule.capacity_per_slot),
     });
-    alert("Slot settings saved.");
+    toast("Slot settings saved.");
   }
 
   async function saveEmails(e) {
@@ -246,7 +249,7 @@ export default function AdminSettings() {
       <Card title="Manage Time Slots">
         <label className="mb-3 flex items-center gap-2 text-sm text-cream/70">
           Date:
-          <input type="date" min={todayIso()} value={blockDate} onChange={(e) => setBlockDate(e.target.value)} className={inputClass} />
+          <DatePickerField value={blockDate} minDate={todayIso()} onChange={setBlockDate} />
         </label>
         <p className="mb-3 max-w-md text-sm text-cream/60">
           Click a normal time to block/unblock it. Extra times (blue) can be removed by clicking them.

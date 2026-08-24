@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getCustomers } from "../../lib/adminApi";
-import { Table, buttonOutlineClass, inputClass } from "../../components/admin/ui";
+import { Table, buttonOutlineClass } from "../../components/admin/ui";
+import DatePickerField from "../../components/admin/DatePickerField";
 
 export default function AdminCustomers() {
   const [date, setDate] = useState("");
@@ -17,7 +18,7 @@ export default function AdminCustomers() {
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2 text-sm text-cream/70">
           Date:
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+          <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
         </label>
         <button type="button" onClick={() => setDate("")} className={buttonOutlineClass}>
           Show All

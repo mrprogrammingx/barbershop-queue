@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import { getMe, logout } from "../../lib/adminApi";
+import { AdminUIProvider } from "./AdminUIContext";
 
 const LINKS = [
   { to: "/admin/dashboard", label: "Dashboard" },
@@ -36,6 +37,7 @@ export default function AdminLayout() {
   }
 
   return (
+    <AdminUIProvider>
     <div className="min-h-screen bg-ink text-cream">
       <header className="border-b border-charcoal-lighter px-6 py-4">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
@@ -73,5 +75,6 @@ export default function AdminLayout() {
         <Outlet />
       </main>
     </div>
+    </AdminUIProvider>
   );
 }

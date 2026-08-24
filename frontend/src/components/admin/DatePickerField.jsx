@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Calendar } from "lucide-react";
 import DateCalendar from "../DateCalendar";
 
@@ -21,24 +21,12 @@ function todayIso() {
 
 export default function DatePickerField({ value, onChange, minDate, label }) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
 
   return (
-    <div ref={containerRef} className="relative inline-block">
+    <div className="relative inline-block">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         aria-label={label || "Choose date"}
         className="flex items-center gap-2 rounded-lg border border-charcoal-lighter bg-ink px-3 py-2 text-sm text-cream transition-colors hover:border-gold/50 focus:border-gold focus:outline-none"
       >
@@ -47,15 +35,20 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 w-72 shadow-2xl">
-          <DateCalendar
-            value={value || todayIso()}
-            minDate={minDate}
-            onChange={(iso) => {
-              onChange(iso);
-              setOpen(false);
-            }}
-          />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 px-4 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+        >
+          <div className="w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <DateCalendar
+              value={value || todayIso()}
+              minDate={minDate}
+              onChange={(iso) => {
+                onChange(iso);
+                setOpen(false);
+              }}
+            />
+          </div>
         </div>
       )}
     </div>

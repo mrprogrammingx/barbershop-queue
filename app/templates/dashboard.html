@@ -45,7 +45,7 @@
       document.getElementById("reset-queue").disabled = !isToday;
       document.getElementById("today-only-hint").style.display = isToday ? "none" : "block";
 
-      const res = await fetch(`/queue?for_date=${selectedDate}`);
+      const res = await adminFetch(`/queue?for_date=${selectedDate}`);
       const entries = await res.json();
       const body = document.getElementById("queue-body");
       const emptyMessage = document.getElementById("empty-message");
@@ -80,7 +80,7 @@
     }
 
     async function saveNote(id, note) {
-      await fetch(`/queue/${id}/note`, {
+      await adminFetch(`/queue/${id}/note`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: note || null }),
@@ -88,18 +88,18 @@
     }
 
     async function updateEntry(id, action) {
-      await fetch(`/queue/${id}/${action}`, { method: "POST" });
+      await adminFetch(`/queue/${id}/${action}`, { method: "POST" });
       loadQueue();
     }
 
     document.getElementById("call-next").addEventListener("click", async () => {
-      await fetch("/queue/call-next", { method: "POST" });
+      await adminFetch("/queue/call-next", { method: "POST" });
       loadQueue();
     });
 
     document.getElementById("reset-queue").addEventListener("click", async () => {
       if (confirm("Reset today's queue?")) {
-        await fetch("/admin/reset-queue", { method: "POST" });
+        await adminFetch("/admin/reset-queue", { method: "POST" });
         loadQueue();
       }
     });

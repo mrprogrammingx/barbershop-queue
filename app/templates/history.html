@@ -23,7 +23,7 @@
     }
 
     async function loadDates() {
-      const res = await fetch("/queue/history/dates");
+      const res = await adminFetch("/queue/history/dates");
       const dates = await res.json();
       const picker = document.getElementById("date-picker");
       const availableDates = document.getElementById("available-dates");
@@ -37,7 +37,7 @@
     }
 
     async function loadHistory(queueDate) {
-      const res = await fetch(`/queue/history/${queueDate}`);
+      const res = await adminFetch(`/queue/history/${queueDate}`);
       const entries = await res.json();
       const body = document.getElementById("history-body");
       const emptyMessage = document.getElementById("empty-message");

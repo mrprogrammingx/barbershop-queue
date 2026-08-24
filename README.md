@@ -56,6 +56,14 @@ uvicorn app.main:app --reload --port 8002
 - Health check: http://localhost:8002/health
 - API docs: http://localhost:8002/docs
 
+## Admin login
+
+The Staff Dashboard, History, Customers, and Settings pages (and their APIs) require an
+admin login. Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`, and a random
+`SESSION_SECRET_KEY` (e.g. `python -c "import secrets; print(secrets.token_hex(32))"`).
+Login is disabled while `ADMIN_PASSWORD` is blank. The check-in page (browsing times,
+booking, and looking up "My Bookings" by phone) stays fully public — no login required.
+
 ## Email notifications
 
 Set `ADMIN_EMAIL` to the address that should be notified when a customer checks in. Set
@@ -75,6 +83,8 @@ are not emailed; only the admin address is notified.
 6. **Admin controls** — toggle shop open/closed, set shop hours text, reset today's queue.
 7. **Queue history** — browse past days' queue entries by date.
 8. **Customers page** — every customer who's ever checked in, with visit counts.
+9. **Admin login** — Staff Dashboard, History, Customers, and Settings require login;
+   check-in and booking lookup stay public.
 
 ## Tests
 

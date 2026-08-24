@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.database import get_db
 from app.models import QueueEntry, ShopStatus, QueueStatus, BlockedSlot, IncludedSlot
 from app.schemas import (
@@ -19,7 +20,12 @@ from app.schemas import (
 )
 from app.timezone import today
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+# Public: read-only shop status is needed on every page (banner) and by the
+# public check-in page, so it is not behind admin auth.
+public_router = APIRouter(prefix="/admin", tags=["admin"])
+
+# Everything else under /admin is staff-only configuration.
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 
 def _get_or_create_shop_status(db: Session) -> ShopStatus:
@@ -32,7 +38,7 @@ def _get_or_create_shop_status(db: Session) -> ShopStatus:
     return status
 
 
-@router.get("/shop-status", response_model=ShopStatusOut)
+@public_router.get("/shop-status", response_model=ShopStatusOut)
 def get_shop_status(db: Session = Depends(get_db)):
     return _get_or_create_shop_status(db)
 

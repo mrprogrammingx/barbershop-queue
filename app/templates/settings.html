@@ -66,16 +66,16 @@
 
   <script>
     async function loadBookingToday() {
-      const res = await fetch("/admin/shop-status");
+      const res = await adminFetch("/admin/shop-status");
       const status = await res.json();
       document.getElementById("booking-today-status").textContent =
         status.booking_open ? "Booking is open for today." : "Booking is closed for today.";
     }
 
     document.getElementById("toggle-booking-today").addEventListener("click", async () => {
-      const res = await fetch("/admin/shop-status");
+      const res = await adminFetch("/admin/shop-status");
       const status = await res.json();
-      await fetch("/admin/shop-status", {
+      await adminFetch("/admin/shop-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ booking_open: !status.booking_open }),
@@ -84,7 +84,7 @@
     });
 
     async function loadOpenDays() {
-      const res = await fetch("/admin/shop-status");
+      const res = await adminFetch("/admin/shop-status");
       const status = await res.json();
       document.querySelectorAll('input[name="open_days"]').forEach(cb => {
         cb.checked = status.open_days.includes(cb.value);
@@ -94,7 +94,7 @@
     document.getElementById("open-days-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const open_days = Array.from(document.querySelectorAll('input[name="open_days"]:checked')).map(cb => cb.value);
-      await fetch("/admin/open-days", {
+      await adminFetch("/admin/open-days", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ open_days }),
@@ -103,7 +103,7 @@
     });
 
     async function loadScheduleSettings() {
-      const res = await fetch("/admin/shop-status");
+      const res = await adminFetch("/admin/shop-status");
       const status = await res.json();
       document.getElementById("open-time-input").value = status.open_time.slice(0, 5);
       document.getElementById("close-time-input").value = status.close_time.slice(0, 5);
@@ -113,7 +113,7 @@
 
     document.getElementById("schedule-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      await fetch("/admin/schedule-settings", {
+      await adminFetch("/admin/schedule-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -127,7 +127,7 @@
     });
 
     async function loadNotificationEmails() {
-      const res = await fetch("/admin/shop-status");
+      const res = await adminFetch("/admin/shop-status");
       const status = await res.json();
       document.getElementById("notification-emails-input").value = status.notification_emails.join("\n");
     }
@@ -141,7 +141,7 @@
         .filter(email => email.length > 0);
       const message = document.getElementById("notification-emails-message");
 
-      const res = await fetch("/admin/notification-emails", {
+      const res = await adminFetch("/admin/notification-emails", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notification_emails }),
@@ -164,7 +164,7 @@
     }
 
     async function loadBlockSlots() {
-      const res = await fetch(`/queue/available-times?for_date=${blockDateIso()}`);
+      const res = await adminFetch(`/queue/available-times?for_date=${blockDateIso()}`);
       const slots = await res.json();
       const container = document.getElementById("block-slots");
       container.innerHTML = "";
@@ -191,7 +191,7 @@
 
     async function toggleBlock(time, isBlocked) {
       const payload = { date: blockDateIso(), time };
-      await fetch("/admin/blocked-slots", {
+      await adminFetch("/admin/blocked-slots", {
         method: isBlocked ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -200,7 +200,7 @@
     }
 
     async function removeExtraTime(time) {
-      await fetch("/admin/included-slots", {
+      await adminFetch("/admin/included-slots", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: blockDateIso(), time }),
@@ -212,7 +212,7 @@
       e.preventDefault();
       const time = document.getElementById("add-time-input").value;
       if (!time) return;
-      await fetch("/admin/included-slots", {
+      await adminFetch("/admin/included-slots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: blockDateIso(), time }),

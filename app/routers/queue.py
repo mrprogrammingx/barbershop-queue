@@ -4,13 +4,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus, BlockedSlot, IncludedSlot
 from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate, AvailableSlotOut, validate_phone
 from app.services.email import send_admin_checkin_notification
 from app.timezone import today as get_today
 
+# Public: check-in, availability, and a customer's own booking lookup.
 router = APIRouter(prefix="/queue", tags=["queue"])
+
+# Staff-only: viewing/managing the live queue and history.
+admin_router = APIRouter(prefix="/queue", tags=["queue"], dependencies=[Depends(require_admin)])
 
 
 def _get_or_create_shop_status(db: Session) -> ShopStatus:
@@ -165,7 +170,7 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
     return entry
 
 
-@router.get("", response_model=list[QueueEntryOut])
+@admin_router.get("", response_model=list[QueueEntryOut])
 def list_queue(for_date: date | None = None, db: Session = Depends(get_db)):
     target_date = for_date or get_today()
     return (
@@ -195,7 +200,7 @@ def get_my_bookings(phone: str, for_date: date | None = None, db: Session = Depe
     return query.order_by(QueueEntry.queue_date.desc(), QueueEntry.appointment_time.asc()).all()
 
 
-@router.get("/history/dates", response_model=list[date])
+@admin_router.get("/history/dates", response_model=list[date])
 def list_history_dates(db: Session = Depends(get_db)):
     rows = (
         db.query(QueueEntry.queue_date)
@@ -206,7 +211,7 @@ def list_history_dates(db: Session = Depends(get_db)):
     return [row[0] for row in rows]
 
 
-@router.get("/history/{queue_date}", response_model=list[QueueEntryOut])
+@admin_router.get("/history/{queue_date}", response_model=list[QueueEntryOut])
 def get_history_for_date(queue_date: date, db: Session = Depends(get_db)):
     return (
         db.query(QueueEntry)
@@ -216,7 +221,7 @@ def get_history_for_date(queue_date: date, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/{entry_id}/position", response_model=QueueEntryOut)
+@admin_router.get("/{entry_id}/position", response_model=QueueEntryOut)
 def get_position(entry_id: int, db: Session = Depends(get_db)):
     entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()
     if entry is None:
@@ -224,7 +229,7 @@ def get_position(entry_id: int, db: Session = Depends(get_db)):
     return entry
 
 
-@router.post("/{entry_id}/note", response_model=QueueEntryOut)
+@admin_router.post("/{entry_id}/note", response_model=QueueEntryOut)
 def set_note(entry_id: int, payload: QueueNoteUpdate, db: Session = Depends(get_db)):
     entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()
     if entry is None:
@@ -236,7 +241,7 @@ def set_note(entry_id: int, payload: QueueNoteUpdate, db: Session = Depends(get_
     return entry
 
 
-@router.post("/call-next", response_model=QueueEntryOut)
+@admin_router.post("/call-next", response_model=QueueEntryOut)
 def call_next(db: Session = Depends(get_db)):
     today = get_today()
 
@@ -281,7 +286,7 @@ def _promote_upcoming_next(db: Session, today: date) -> None:
     db.commit()
 
 
-@router.post("/{entry_id}/done", response_model=QueueEntryOut)
+@admin_router.post("/{entry_id}/done", response_model=QueueEntryOut)
 def mark_done(entry_id: int, db: Session = Depends(get_db)):
     entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()
     if entry is None:
@@ -293,7 +298,7 @@ def mark_done(entry_id: int, db: Session = Depends(get_db)):
     return entry
 
 
-@router.post("/{entry_id}/no-show", response_model=QueueEntryOut)
+@admin_router.post("/{entry_id}/no-show", response_model=QueueEntryOut)
 def mark_no_show(entry_id: int, db: Session = Depends(get_db)):
     entry = db.query(QueueEntry).filter(QueueEntry.id == entry_id).first()
     if entry is None:

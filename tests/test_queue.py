@@ -3,6 +3,8 @@ from datetime import date
 
 os.environ["EMAIL_DRY_RUN"] = "true"
 os.environ["DATABASE_URL"] = "sqlite:///./test_barbershop.db"
+os.environ["ADMIN_USERNAME"] = "admin"
+os.environ["ADMIN_PASSWORD"] = "test-password-123"
 
 from fastapi.testclient import TestClient
 
@@ -17,6 +19,17 @@ def _first_available_slot():
     res = client.get(f"/queue/available-times?for_date={TODAY}")
     slots = res.json()
     return next(s["time"] for s in slots if s["available"])
+
+
+def _login_as_admin():
+    admin_client = TestClient(app)
+    response = admin_client.post(
+        "/login",
+        data={"username": "admin", "password": "test-password-123", "next": "/dashboard"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    return admin_client
 
 
 def test_checkin_and_position():
@@ -36,7 +49,12 @@ def test_checkin_and_position():
     assert data["customer"]["name"] == "Alice"
 
 
-def test_call_next():
+def test_call_next_requires_admin():
+    response = client.post("/queue/call-next")
+    assert response.status_code == 401
+
+
+def test_call_next_as_admin():
     client.post(
         "/queue/checkin",
         json={
@@ -46,5 +64,26 @@ def test_call_next():
             "appointment_time": _first_available_slot(),
         },
     )
-    response = client.post("/queue/call-next")
+    admin_client = _login_as_admin()
+    response = admin_client.post("/queue/call-next")
     assert response.status_code in (200, 400)
+
+
+def test_login_rejects_bad_credentials():
+    response = client.post(
+        "/login",
+        data={"username": "admin", "password": "wrong", "next": "/dashboard"},
+    )
+    assert response.status_code == 401
+
+
+def test_dashboard_redirects_when_not_logged_in():
+    response = client.get("/dashboard", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"].startswith("/login")
+
+
+def test_dashboard_accessible_when_logged_in():
+    admin_client = _login_as_admin()
+    response = admin_client.get("/dashboard")
+    assert response.status_code == 200

@@ -31,7 +31,7 @@
         ? `Showing customers booked on ${selectedDate}.`
         : "Showing all customers. Pick a date to see only who's booked that day.";
 
-      const res = await fetch(url);
+      const res = await adminFetch(url);
       const customers = await res.json();
       const body = document.getElementById("customers-body");
       const emptyMessage = document.getElementById("empty-message");

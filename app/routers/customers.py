@@ -4,11 +4,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.database import get_db
 from app.models import Customer, QueueEntry
 from app.schemas import CustomerListOut
 
-router = APIRouter(prefix="/queue/customers", tags=["customers"])
+router = APIRouter(prefix="/queue/customers", tags=["customers"], dependencies=[Depends(require_admin)])
 
 
 @router.get("", response_model=list[CustomerListOut])

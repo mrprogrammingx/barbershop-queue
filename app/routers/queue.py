@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models import Customer, QueueEntry, QueueStatus, ShopStatus
 from app.schemas import CheckInRequest, QueueEntryOut, QueueNoteUpdate
 from app.services.email import send_admin_checkin_notification
+from app.timezone import today as get_today
 
 router = APIRouter(prefix="/queue", tags=["queue"])
 
@@ -36,7 +37,7 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
         customer.name = payload.name
     db.flush()
 
-    today = date.today()
+    today = get_today()
     max_position = (
         db.query(func.max(QueueEntry.position))
         .filter(QueueEntry.queue_date == today)
@@ -62,7 +63,7 @@ def check_in(payload: CheckInRequest, db: Session = Depends(get_db)):
 
 @router.get("", response_model=list[QueueEntryOut])
 def list_queue(db: Session = Depends(get_db)):
-    today = date.today()
+    today = get_today()
     return (
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == today)
@@ -115,7 +116,7 @@ def set_note(entry_id: int, payload: QueueNoteUpdate, db: Session = Depends(get_
 
 @router.post("/call-next", response_model=QueueEntryOut)
 def call_next(db: Session = Depends(get_db)):
-    today = date.today()
+    today = get_today()
 
     in_progress = (
         db.query(QueueEntry)
@@ -180,7 +181,7 @@ def mark_no_show(entry_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(entry)
 
-    today = date.today()
+    today = get_today()
     in_progress = (
         db.query(QueueEntry)
         .filter(QueueEntry.queue_date == today, QueueEntry.status == QueueStatus.in_progress)

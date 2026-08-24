@@ -1,11 +1,10 @@
-from datetime import date
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import QueueEntry, ShopStatus, QueueStatus
 from app.schemas import ShopStatusOut, ShopStatusUpdate, ShopHoursUpdate
+from app.timezone import today
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -46,10 +45,9 @@ def set_shop_hours(payload: ShopHoursUpdate, db: Session = Depends(get_db)):
 @router.post("/reset-queue")
 def reset_queue(db: Session = Depends(get_db)):
     """Marks all of today's active queue entries as done, effectively resetting the queue."""
-    today = date.today()
     entries = (
         db.query(QueueEntry)
-        .filter(QueueEntry.queue_date == today)
+        .filter(QueueEntry.queue_date == today())
         .filter(QueueEntry.status.in_([QueueStatus.waiting, QueueStatus.next, QueueStatus.in_progress]))
         .all()
     )

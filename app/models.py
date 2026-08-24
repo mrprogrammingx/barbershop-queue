@@ -1,5 +1,4 @@
 import enum
-from datetime import datetime, date
 
 from sqlalchemy import (
     Column,
@@ -15,6 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.timezone import now, today
 
 
 class QueueStatus(str, enum.Enum):
@@ -31,7 +31,7 @@ class Customer(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     phone = Column(String, nullable=False, unique=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=now)
 
     queue_entries = relationship("QueueEntry", back_populates="customer")
 
@@ -41,13 +41,13 @@ class QueueEntry(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
-    queue_date = Column(Date, default=date.today, index=True)
+    queue_date = Column(Date, default=today, index=True)
     position = Column(Integer, nullable=False)
     status = Column(Enum(QueueStatus), default=QueueStatus.waiting, nullable=False)
     note = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=now)
+    updated_at = Column(DateTime, default=now, onupdate=now)
 
     customer = relationship("Customer", back_populates="queue_entries")
 
@@ -60,4 +60,4 @@ class ShopStatus(Base):
     id = Column(Integer, primary_key=True, index=True)
     is_open = Column(Boolean, default=True, nullable=False)
     hours = Column(String, nullable=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=now, onupdate=now)

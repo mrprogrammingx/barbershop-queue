@@ -2,19 +2,17 @@ import PageHeader from "../components/PageHeader";
 import Section from "../components/Section";
 import BookingForm from "../sections/BookingForm";
 import MyBookingsLookup from "../sections/MyBookingsLookup";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function Booking() {
+  const { t } = useLanguage();
   return (
     <>
-      <PageHeader
-        eyebrow="Reserve Your Chair"
-        title="Book Your Appointment"
-        subtitle="Pick a date, grab an open time, and you're in the queue — no account needed."
-      />
+      <PageHeader eyebrow={t("booking.eyebrow")} title={t("booking.title")} subtitle={t("booking.subtitle")} />
       <Section>
         <BookingForm />
       </Section>
-      <Section eyebrow="Already Booked?" title="Find Your Appointment" className="bg-charcoal/40">
+      <Section eyebrow={t("booking.alreadyBookedEyebrow")} title={t("booking.alreadyBookedTitle")} className="bg-charcoal/40">
         <MyBookingsLookup />
       </Section>
     </>

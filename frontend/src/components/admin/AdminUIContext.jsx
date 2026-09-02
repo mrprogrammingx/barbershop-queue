@@ -1,9 +1,11 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import { buttonClass, buttonOutlineClass } from "./ui";
+import { useLanguage } from "../../lib/i18n/LanguageContext";
 
 const AdminUIContext = createContext(null);
 
 export function AdminUIProvider({ children }) {
+  const { t } = useLanguage();
   const [toasts, setToasts] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
 
@@ -50,10 +52,10 @@ export function AdminUIProvider({ children }) {
             <p className="mb-6 text-sm leading-relaxed text-cream">{confirmState.message}</p>
             <div className="flex justify-end gap-3">
               <button type="button" onClick={() => resolveConfirm(false)} className={buttonOutlineClass}>
-                Cancel
+                {t("admin.cancel")}
               </button>
               <button type="button" onClick={() => resolveConfirm(true)} className={buttonClass}>
-                Confirm
+                {t("admin.confirm")}
               </button>
             </div>
           </div>

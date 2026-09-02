@@ -4,17 +4,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, Phone, X } from "lucide-react";
 import { InstagramIcon, TelegramIcon, WhatsAppIcon } from "./icons";
 import { SHOP } from "../lib/content";
-
-const LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/contact", label: "Contact" },
-];
+import { useLanguage } from "../lib/i18n/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const ADMIN_LOGIN_URL = "/admin/login";
 
 export default function Navbar() {
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const LINKS = [
+    { to: "/", label: t("nav.home") },
+    { to: "/contact", label: t("nav.contact") },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -93,14 +96,15 @@ export default function Navbar() {
             >
               <WhatsAppIcon size={20} />
             </a>
+            <LanguageSwitcher />
             <a
               href={ADMIN_LOGIN_URL}
               className="font-body text-sm font-medium uppercase tracking-wider text-cream/60 transition-colors hover:text-gold"
             >
-              Staff Login
+              {t("nav.staffLogin")}
             </a>
             <Link to="/booking" className="btn-gold !py-2.5 !px-6 text-xs">
-              Book Now
+              {t("nav.bookNow")}
             </Link>
           </div>
 
@@ -146,6 +150,7 @@ export default function Navbar() {
             </ul>
 
             <div className="flex flex-col gap-6">
+              <LanguageSwitcher className="self-start" />
               {SHOP.phones.map((phone) => (
                 <a
                   key={phone}
@@ -180,10 +185,10 @@ export default function Navbar() {
                 <WhatsAppIcon size={18} className="text-gold" /> {SHOP.whatsappHandle}
               </a>
               <Link to="/booking" onClick={() => setOpen(false)} className="btn-gold w-full">
-                Book Now
+                {t("nav.bookNow")}
               </Link>
               <a href={ADMIN_LOGIN_URL} className="text-sm uppercase tracking-wider text-cream/50">
-                Staff Login
+                {t("nav.staffLogin")}
               </a>
             </div>
           </motion.div>

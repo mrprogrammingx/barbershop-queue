@@ -1,9 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useCallback } from "react";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function Lightbox({ images, index, onClose, onNavigate }) {
+  const { t, dir } = useLanguage();
   const image = index !== null ? images[index] : null;
+  const PrevIcon = dir === "rtl" ? ChevronRight : ChevronLeft;
+  const NextIcon = dir === "rtl" ? ChevronLeft : ChevronRight;
 
   const handleKey = useCallback(
     (e) => {
@@ -31,7 +35,7 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/95 backdrop-blur-sm"
         >
           <button
-            aria-label="Close"
+            aria-label={t("lightbox.close")}
             onClick={onClose}
             className="absolute right-6 top-6 text-cream/80 transition-colors hover:text-gold"
           >
@@ -39,14 +43,14 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
           </button>
 
           <button
-            aria-label="Previous image"
+            aria-label={t("lightbox.previous")}
             onClick={(e) => {
               e.stopPropagation();
               onNavigate((index - 1 + images.length) % images.length);
             }}
             className="absolute left-4 text-cream/70 transition-colors hover:text-gold md:left-8"
           >
-            <ChevronLeft size={36} />
+            <PrevIcon size={36} />
           </button>
 
           <motion.img
@@ -62,14 +66,14 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
           />
 
           <button
-            aria-label="Next image"
+            aria-label={t("lightbox.next")}
             onClick={(e) => {
               e.stopPropagation();
               onNavigate((index + 1) % images.length);
             }}
             className="absolute right-4 text-cream/70 transition-colors hover:text-gold md:right-8"
           >
-            <ChevronRight size={36} />
+            <NextIcon size={36} />
           </button>
         </motion.div>
       )}

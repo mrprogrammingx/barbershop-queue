@@ -16,6 +16,7 @@ import { Card, Toggle, buttonClass, buttonOutlineClass, inputClass } from "../..
 import DatePickerField from "../../components/admin/DatePickerField";
 import TimePickerField from "../../components/admin/TimePickerField";
 import { useAdminUI } from "../../components/admin/AdminUIContext";
+import { useLanguage } from "../../lib/i18n/LanguageContext";
 
 function todayIso() {
   const d = new Date();
@@ -23,16 +24,17 @@ function todayIso() {
 }
 
 const DAY_OPTIONS = [
-  { value: "mon", label: "Monday" },
-  { value: "tue", label: "Tuesday" },
-  { value: "wed", label: "Wednesday" },
-  { value: "thu", label: "Thursday" },
-  { value: "fri", label: "Friday" },
-  { value: "sat", label: "Saturday" },
-  { value: "sun", label: "Sunday" },
+  { value: "mon", key: "day.mon" },
+  { value: "tue", key: "day.tue" },
+  { value: "wed", key: "day.wed" },
+  { value: "thu", key: "day.thu" },
+  { value: "fri", key: "day.fri" },
+  { value: "sat", key: "day.sat" },
+  { value: "sun", key: "day.sun" },
 ];
 
 export default function AdminSettings() {
+  const { t } = useLanguage();
   const { toast } = useAdminUI();
   const [status, setStatus] = useState(null);
   const [openDays, setOpenDaysState] = useState([]);
@@ -96,7 +98,7 @@ export default function AdminSettings() {
   async function saveOpenDays(e) {
     e.preventDefault();
     await setOpenDays(openDays);
-    toast("Days open saved.");
+    toast(t("admin.settings.daysOpenSaved"));
   }
 
   async function saveSchedule(e) {
@@ -107,7 +109,7 @@ export default function AdminSettings() {
       slot_duration_minutes: Number(schedule.slot_duration_minutes),
       capacity_per_slot: Number(schedule.capacity_per_slot),
     });
-    toast("Slot settings saved.");
+    toast(t("admin.settings.slotSettingsSaved"));
   }
 
   async function saveEmails(e) {
@@ -118,9 +120,9 @@ export default function AdminSettings() {
       .filter((email) => email.length > 0);
     try {
       await setNotificationEmails(notification_emails);
-      setEmailsMessage("Notification emails saved.");
+      setEmailsMessage(t("admin.settings.emailsSaved"));
     } catch (err) {
-      setEmailsMessage(`Error: ${err.message}`);
+      setEmailsMessage(t("admin.settings.emailsError", { message: err.message }));
     }
   }
 
@@ -142,25 +144,23 @@ export default function AdminSettings() {
     refreshSlots();
   }
 
-  if (!status) return <p className="text-cream/50">Loading…</p>;
+  if (!status) return <p className="text-cream/50">{t("admin.settings.loading")}</p>;
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl tracking-wide">Settings</h1>
+      <h1 className="font-display text-2xl tracking-wide">{t("admin.settings.title")}</h1>
 
-      <Card title="Booking Today">
-        <p className="mb-4 max-w-md text-sm text-cream/60">
-          Turn off new bookings for today only, without changing the regular weekly schedule. Other dates stay bookable.
-        </p>
+      <Card title={t("admin.settings.bookingToday")}>
+        <p className="mb-4 max-w-md text-sm text-cream/60">{t("admin.settings.bookingTodayDesc")}</p>
         <div className="flex items-center gap-4">
-          <Toggle checked={status.booking_open} onChange={toggleBookingToday} label="Toggle booking open or closed for today" />
+          <Toggle checked={status.booking_open} onChange={toggleBookingToday} label={t("admin.settings.toggleAria")} />
           <span className={`text-sm font-medium ${status.booking_open ? "text-gold" : "text-cream/50"}`}>
-            {status.booking_open ? "Booking is open for today" : "Booking is closed for today"}
+            {status.booking_open ? t("admin.settings.bookingOpenToday") : t("admin.settings.bookingClosedToday")}
           </span>
         </div>
       </Card>
 
-      <Card title="Days Open">
+      <Card title={t("admin.settings.daysOpen")}>
         <form onSubmit={saveOpenDays} className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2.5">
             {DAY_OPTIONS.map((day) => {
@@ -180,7 +180,7 @@ export default function AdminSettings() {
                     onChange={() => toggleDay(day.value)}
                     className="sr-only"
                   />
-                  {day.label}
+                  {t(day.key)}
                 </label>
               );
             })}
@@ -188,16 +188,16 @@ export default function AdminSettings() {
           <div className="mt-1 flex items-center gap-3 border-t border-charcoal-lighter pt-4">
             <button type="submit" className={`${buttonOutlineClass} gap-2`}>
               <Check size={14} />
-              Save Days Open
+              {t("admin.settings.saveDaysOpen")}
             </button>
           </div>
         </form>
       </Card>
 
-      <Card title="Appointment Slots">
+      <Card title={t("admin.settings.appointmentSlots")}>
         <form onSubmit={saveSchedule} className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
           <label className="flex flex-col gap-1 text-sm text-cream/70">
-            Open
+            {t("admin.settings.open")}
             <TimePickerField
               required
               value={schedule.open_time}
@@ -205,7 +205,7 @@ export default function AdminSettings() {
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-cream/70">
-            Close
+            {t("admin.settings.close")}
             <TimePickerField
               required
               value={schedule.close_time}
@@ -213,7 +213,7 @@ export default function AdminSettings() {
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-cream/70">
-            Slot length (minutes)
+            {t("admin.settings.slotLength")}
             <input
               type="number"
               min="5"
@@ -225,7 +225,7 @@ export default function AdminSettings() {
             />
           </label>
           <label className="flex flex-col gap-1 text-sm text-cream/70">
-            Capacity per slot
+            {t("admin.settings.capacityPerSlot")}
             <input
               type="number"
               min="1"
@@ -237,15 +237,13 @@ export default function AdminSettings() {
             />
           </label>
           <button type="submit" className={buttonClass}>
-            Save Slot Settings
+            {t("admin.settings.saveSlotSettings")}
           </button>
         </form>
       </Card>
 
-      <Card title="Notification Emails">
-        <p className="mb-3 max-w-md text-sm text-cream/60">
-          Email addresses notified whenever a customer checks in. One per line or comma-separated.
-        </p>
+      <Card title={t("admin.settings.notificationEmails")}>
+        <p className="mb-3 max-w-md text-sm text-cream/60">{t("admin.settings.notificationEmailsDesc")}</p>
         <form onSubmit={saveEmails} className="flex flex-col gap-3">
           <textarea
             rows={4}
@@ -255,20 +253,18 @@ export default function AdminSettings() {
             className={`${inputClass} w-full max-w-sm`}
           />
           <button type="submit" className={`${buttonClass} self-start`}>
-            Save Notification Emails
+            {t("admin.settings.saveNotificationEmails")}
           </button>
           {emailsMessage && <p className="text-sm text-cream/60">{emailsMessage}</p>}
         </form>
       </Card>
 
-      <Card title="Manage Time Slots">
+      <Card title={t("admin.settings.manageTimeSlots")}>
         <label className="mb-3 flex items-center gap-2 text-sm text-cream/70">
-          Date:
+          {t("admin.field.date")}
           <DatePickerField value={blockDate} minDate={todayIso()} onChange={setBlockDate} />
         </label>
-        <p className="mb-3 max-w-md text-sm text-cream/60">
-          Click a normal time to block/unblock it. Extra times (blue) can be removed by clicking them.
-        </p>
+        <p className="mb-3 max-w-md text-sm text-cream/60">{t("admin.settings.manageTimeSlotsDesc")}</p>
         <div className="mb-4 flex max-w-xl flex-wrap gap-2">
           {slots.map((slot) => {
             let classes = "rounded-lg border px-3 py-2 text-sm transition-colors";
@@ -280,7 +276,7 @@ export default function AdminSettings() {
               <button
                 key={slot.time}
                 type="button"
-                title={slot.included ? "Extra time — click to remove" : "Click to block/unblock"}
+                title={slot.included ? t("admin.settings.slotExtraTitle") : t("admin.settings.slotBlockTitle")}
                 onClick={() => handleSlotClick(slot)}
                 className={classes}
               >
@@ -292,7 +288,7 @@ export default function AdminSettings() {
         <form onSubmit={addExtraTime} className="flex items-center gap-3">
           <TimePickerField required value={newTime} onChange={setNewTime} />
           <button type="submit" className={buttonOutlineClass}>
-            Add Extra Time for This Date
+            {t("admin.settings.addExtraTime")}
           </button>
         </form>
       </Card>

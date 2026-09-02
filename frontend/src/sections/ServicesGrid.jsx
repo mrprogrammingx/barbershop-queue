@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import { Scissors } from "lucide-react";
 import Reveal from "../components/Reveal";
 import { SERVICES } from "../lib/content";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function ServicesGrid({ limit, showCta = false }) {
+  const { t } = useLanguage();
   const services = limit ? SERVICES.slice(0, limit) : SERVICES;
 
   return (
@@ -23,15 +25,15 @@ export default function ServicesGrid({ limit, showCta = false }) {
             >
               {service.featured && (
                 <span className="absolute right-6 top-6 rounded-full bg-gold/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold">
-                  Popular
+                  {t("services.popular")}
                 </span>
               )}
               <div>
                 <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold transition-colors group-hover:bg-gold group-hover:text-ink">
                   <Scissors size={20} />
                 </div>
-                <h3 className="font-display text-2xl text-cream">{service.name}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-cream-dim">{service.description}</p>
+                <h3 className="font-display text-2xl text-cream">{t(`service.${service.id}.name`)}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-cream-dim">{t(`service.${service.id}.description`)}</p>
               </div>
             </motion.div>
           </Reveal>
@@ -41,7 +43,7 @@ export default function ServicesGrid({ limit, showCta = false }) {
       {showCta && (
         <Reveal delay={0.2} className="mt-14 text-center">
           <Link to="/booking" className="btn-gold">
-            Book Your Chair
+            {t("services.bookYourChair")}
           </Link>
         </Reveal>
       )}

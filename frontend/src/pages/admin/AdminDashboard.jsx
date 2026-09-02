@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueue, markDone, markNoShow, setNote } from "../../lib/adminApi";
 import { EntryCard, EntryRow, StatusSelect, Table, inputClass } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
+import { useLanguage } from "../../lib/i18n/LanguageContext";
 
 function todayIso() {
   const d = new Date();
@@ -9,6 +10,7 @@ function todayIso() {
 }
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [date, setDate] = useState(todayIso());
   const [entries, setEntries] = useState([]);
   const [notes, setNotes] = useState({});
@@ -46,19 +48,28 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl tracking-wide">Staff Dashboard</h1>
+      <h1 className="font-display text-2xl tracking-wide">{t("admin.dashboard.title")}</h1>
 
       <label className="flex items-center gap-2 text-sm text-cream/70">
-        Date:
+        {t("admin.field.date")}
         <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
       </label>
 
       {entries.length === 0 ? (
-        <p className="text-cream/50">No queue entries for this date.</p>
+        <p className="text-cream/50">{t("admin.dashboard.noEntries")}</p>
       ) : (
         <>
           <div className="hidden md:block">
-            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status"]}>
+            <Table
+              columns={[
+                t("admin.table.number"),
+                t("admin.table.time"),
+                t("admin.field.name"),
+                t("admin.field.phone"),
+                t("admin.field.note"),
+                t("admin.field.status"),
+              ]}
+            >
               {entries.map((entry) => (
                 <tr key={entry.id} className="border-b border-charcoal-lighter">
                   <td className="px-3 py-2">{entry.position}</td>
@@ -68,7 +79,7 @@ export default function AdminDashboard() {
                   <td className="px-3 py-2">
                     <input
                       type="text"
-                      placeholder="Note"
+                      placeholder={t("admin.field.note")}
                       value={notes[entry.id] ?? ""}
                       onFocus={() => {
                         noteInputFocused.current = true;
@@ -95,7 +106,7 @@ export default function AdminDashboard() {
                   <div className="border-t border-charcoal-lighter px-4 py-3">
                     <input
                       type="text"
-                      placeholder="Add a note"
+                      placeholder={t("admin.dashboard.addNote")}
                       value={notes[entry.id] ?? ""}
                       onFocus={() => {
                         noteInputFocused.current = true;
@@ -107,9 +118,9 @@ export default function AdminDashboard() {
                   </div>
                 }
               >
-                <EntryRow label="Name">{entry.customer.name}</EntryRow>
-                <EntryRow label="Phone">{entry.customer.phone}</EntryRow>
-                <EntryRow label="Status">
+                <EntryRow label={t("admin.field.name")}>{entry.customer.name}</EntryRow>
+                <EntryRow label={t("admin.field.phone")}>{entry.customer.phone}</EntryRow>
+                <EntryRow label={t("admin.field.status")}>
                   <StatusSelect status={entry.status} onChange={(next) => handleStatusChange(entry.id, next)} />
                 </EntryRow>
               </EntryCard>

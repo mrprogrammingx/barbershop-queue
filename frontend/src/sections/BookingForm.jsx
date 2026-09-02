@@ -3,9 +3,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Calendar, CheckCircle2, Clock, Loader2, PartyPopper } from "lucide-react";
 import { getAvailableTimes, checkIn } from "../lib/api";
 import DateCalendar from "../components/DateCalendar";
-import { formatDateLabel, formatTimeLabel, todayISO } from "../lib/format";
+import { todayISO } from "../lib/format";
+import { formatDateLabelLong, formatTimeLabel } from "../lib/i18n/dateFormat";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function BookingForm() {
+  const { t, lang } = useLanguage();
   const [date, setDate] = useState(todayISO());
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -87,13 +90,15 @@ export default function BookingForm() {
         >
           <PartyPopper size={30} />
         </motion.div>
-        <h3 className="font-display text-3xl text-cream">You're booked, {confirmation.customer.name.split(" ")[0]}</h3>
+        <h3 className="font-display text-3xl text-cream">
+          {t("bookingForm.youAreBooked", { name: confirmation.customer.name.split(" ")[0] })}
+        </h3>
         <p className="mt-3 text-cream-dim">
-          {formatDateLabel(confirmation.queue_date)} at {formatTimeLabel(confirmation.appointment_time)}
+          {formatDateLabelLong(confirmation.queue_date, lang)} · {formatTimeLabel(confirmation.appointment_time, lang)}
         </p>
-        <p className="mt-1 text-sm text-cream-dim">Queue position #{confirmation.position}</p>
+        <p className="mt-1 text-sm text-cream-dim">{t("bookingForm.queuePosition", { n: confirmation.position })}</p>
         <button type="button" onClick={bookAnother} className="btn-outline mt-8">
-          Book Another
+          {t("bookingForm.bookAnother")}
         </button>
       </motion.div>
     );
@@ -103,24 +108,24 @@ export default function BookingForm() {
     <div className="mx-auto grid max-w-4xl grid-cols-1 gap-10 rounded-2xl border border-charcoal-lighter bg-charcoal p-6 md:grid-cols-[1fr_1.1fr] md:p-10">
       <div>
         <label className="eyebrow mb-3 flex items-center gap-2">
-          <Calendar size={14} /> Choose a date
+          <Calendar size={14} /> {t("bookingForm.chooseDate")}
         </label>
         <DateCalendar value={date} onChange={setDate} minDate={todayISO()} />
 
         <label className="eyebrow mb-3 mt-8 flex items-center gap-2">
-          <Clock size={14} /> Available times
+          <Clock size={14} /> {t("bookingForm.availableTimes")}
         </label>
 
         {slotsLoading && (
           <div className="flex items-center gap-2 text-sm text-cream-dim">
-            <Loader2 size={16} className="animate-spin" /> Loading times&hellip;
+            <Loader2 size={16} className="animate-spin" /> {t("bookingForm.loadingTimes")}
           </div>
         )}
 
         {slotsError && <p className="text-sm text-red-400">{slotsError}</p>}
 
         {!slotsLoading && !slotsError && slots.length === 0 && (
-          <p className="text-sm text-cream-dim">The shop is closed on this date. Try another day.</p>
+          <p className="text-sm text-cream-dim">{t("bookingForm.closedOnDate")}</p>
         )}
 
         {!slotsLoading && !slotsError && slots.length > 0 && (
@@ -142,7 +147,7 @@ export default function BookingForm() {
                       : "border-charcoal-lighter text-cream/90 hover:border-gold hover:text-gold"
                   }`}
                 >
-                  {formatTimeLabel(slot.time)}
+                  {formatTimeLabel(slot.time, lang)}
                 </button>
               );
             })}
@@ -153,21 +158,21 @@ export default function BookingForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label htmlFor="name" className="eyebrow mb-2 block">
-            Full name
+            {t("bookingForm.fullName")}
           </label>
           <input
             id="name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Jordan Miller"
+            placeholder={t("bookingForm.fullNamePlaceholder")}
             className="w-full rounded-lg border border-charcoal-lighter bg-ink px-4 py-3 text-cream outline-none transition-colors focus:border-gold"
           />
         </div>
 
         <div>
           <label htmlFor="phone" className="eyebrow mb-2 block">
-            Phone number
+            {t("bookingForm.phoneNumber")}
           </label>
           <input
             id="phone"
@@ -175,20 +180,20 @@ export default function BookingForm() {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="(555) 214-0192"
+            placeholder={t("bookingForm.phonePlaceholder")}
             className="w-full rounded-lg border border-charcoal-lighter bg-ink px-4 py-3 text-cream outline-none transition-colors focus:border-gold"
           />
         </div>
 
         <div>
           <label htmlFor="note" className="eyebrow mb-2 block">
-            Note (optional)
+            {t("bookingForm.noteLabel")}
           </label>
           <textarea
             id="note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Requesting Amir, skin fade + beard line-up"
+            placeholder={t("bookingForm.notePlaceholder")}
             rows={3}
             className="w-full resize-none rounded-lg border border-charcoal-lighter bg-ink px-4 py-3 text-cream outline-none transition-colors focus:border-gold"
           />
@@ -214,11 +219,11 @@ export default function BookingForm() {
         >
           {submitting ? (
             <>
-              <Loader2 size={16} className="animate-spin" /> Booking&hellip;
+              <Loader2 size={16} className="animate-spin" /> {t("bookingForm.booking")}
             </>
           ) : (
             <>
-              <CheckCircle2 size={16} /> Confirm Appointment
+              <CheckCircle2 size={16} /> {t("bookingForm.confirmAppointment")}
             </>
           )}
         </button>

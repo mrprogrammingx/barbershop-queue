@@ -4,10 +4,15 @@ import { Expand } from "lucide-react";
 import Reveal from "../components/Reveal";
 import Lightbox from "../components/Lightbox";
 import { GALLERY } from "../lib/content";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function GalleryGrid({ limit }) {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(null);
-  const images = limit ? GALLERY.slice(0, limit) : GALLERY;
+  const images = (limit ? GALLERY.slice(0, limit) : GALLERY).map((image) => ({
+    ...image,
+    alt: t(`gallery.${image.id}`),
+  }));
 
   return (
     <>

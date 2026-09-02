@@ -2,17 +2,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Search } from "lucide-react";
 import { getMyBookings } from "../lib/api";
-import { formatDateLabel, formatTimeLabel } from "../lib/format";
-
-const STATUS_LABEL = {
-  waiting: "Waiting",
-  next: "Up Next",
-  in_progress: "In Chair",
-  done: "Completed",
-  no_show: "No Show",
-};
+import { formatDateLabelLong, formatTimeLabel } from "../lib/i18n/dateFormat";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function MyBookingsLookup() {
+  const { t, lang } = useLanguage();
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -41,12 +35,12 @@ export default function MyBookingsLookup() {
           required
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Enter the phone number you booked with"
+          placeholder={t("myBookings.placeholder")}
           className="flex-1 rounded-lg border border-charcoal-lighter bg-ink px-4 py-3 text-cream outline-none transition-colors focus:border-gold"
         />
         <button type="submit" disabled={loading} className="btn-outline shrink-0">
           {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-          Find My Bookings
+          {t("myBookings.findButton")}
         </button>
       </form>
 
@@ -59,7 +53,7 @@ export default function MyBookingsLookup() {
           className="mt-6 flex flex-col gap-3"
         >
           {results.length === 0 && (
-            <p className="text-sm text-cream-dim">No bookings found for that number.</p>
+            <p className="text-sm text-cream-dim">{t("myBookings.noResults")}</p>
           )}
           {results.map((entry) => (
             <div
@@ -67,11 +61,11 @@ export default function MyBookingsLookup() {
               className="flex items-center justify-between rounded-lg border border-charcoal-lighter bg-ink px-5 py-4"
             >
               <div>
-                <p className="text-cream">{formatDateLabel(entry.queue_date)}</p>
-                <p className="text-sm text-cream-dim">{formatTimeLabel(entry.appointment_time)}</p>
+                <p className="text-cream">{formatDateLabelLong(entry.queue_date, lang)}</p>
+                <p className="text-sm text-cream-dim">{formatTimeLabel(entry.appointment_time, lang)}</p>
               </div>
               <span className="rounded-full border border-gold/30 px-3 py-1 text-xs uppercase tracking-wider text-gold">
-                {STATUS_LABEL[entry.status] ?? entry.status}
+                {t(`status.${entry.status}`)}
               </span>
             </div>
           ))}

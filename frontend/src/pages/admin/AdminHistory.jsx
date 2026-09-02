@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getHistoryDates, getHistoryForDate, markDone, markNoShow } from "../../lib/adminApi";
 import { EntryCard, EntryRow, StatusPill, StatusSelect, Table } from "../../components/admin/ui";
 import DatePickerField from "../../components/admin/DatePickerField";
+import { useLanguage } from "../../lib/i18n/LanguageContext";
 
 function todayIso() {
   const d = new Date();
@@ -9,6 +10,7 @@ function todayIso() {
 }
 
 export default function AdminHistory() {
+  const { t } = useLanguage();
   const [dates, setDates] = useState([]);
   const [date, setDate] = useState(todayIso());
   const [entries, setEntries] = useState([]);
@@ -34,22 +36,32 @@ export default function AdminHistory() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl tracking-wide">Queue History</h1>
+      <h1 className="font-display text-2xl tracking-wide">{t("admin.history.title")}</h1>
 
       <label className="flex items-center gap-2 text-sm text-cream/70">
-        Date:
+        {t("admin.field.date")}
         <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
       </label>
       <p className="text-sm text-cream/50">
-        {dates.length > 0 ? `Dates with history: ${dates.join(", ")}` : "No past queue history yet."}
+        {dates.length > 0 ? t("admin.history.datesWithHistory", { dates: dates.join(", ") }) : t("admin.history.noHistoryYet")}
       </p>
 
       {entries.length === 0 ? (
-        <p className="text-cream/50">No queue entries for this date.</p>
+        <p className="text-cream/50">{t("admin.dashboard.noEntries")}</p>
       ) : (
         <>
           <div className="hidden md:block">
-            <Table columns={["#", "Time", "Name", "Phone", "Note", "Status", "Checked In"]}>
+            <Table
+              columns={[
+                t("admin.table.number"),
+                t("admin.table.time"),
+                t("admin.field.name"),
+                t("admin.field.phone"),
+                t("admin.field.note"),
+                t("admin.field.status"),
+                t("admin.field.checkedIn"),
+              ]}
+            >
               {entries.map((entry) => (
                 <tr key={entry.id} className="border-b border-charcoal-lighter">
                   <td className="px-3 py-2">{entry.position}</td>
@@ -73,17 +85,17 @@ export default function AdminHistory() {
           <div className="flex flex-col gap-4 md:hidden">
             {entries.map((entry) => (
               <EntryCard key={entry.id} title={`#${entry.position} · ${entry.appointment_time.slice(0, 5)}`}>
-                <EntryRow label="Name">{entry.customer.name}</EntryRow>
-                <EntryRow label="Phone">{entry.customer.phone}</EntryRow>
-                {entry.note && <EntryRow label="Note">{entry.note}</EntryRow>}
-                <EntryRow label="Status">
+                <EntryRow label={t("admin.field.name")}>{entry.customer.name}</EntryRow>
+                <EntryRow label={t("admin.field.phone")}>{entry.customer.phone}</EntryRow>
+                {entry.note && <EntryRow label={t("admin.field.note")}>{entry.note}</EntryRow>}
+                <EntryRow label={t("admin.field.status")}>
                   {isToday ? (
                     <StatusSelect status={entry.status} onChange={(next) => handleStatusChange(entry.id, next)} />
                   ) : (
                     <StatusPill status={entry.status} />
                   )}
                 </EntryRow>
-                <EntryRow label="Checked In">{new Date(entry.created_at).toLocaleTimeString()}</EntryRow>
+                <EntryRow label={t("admin.field.checkedIn")}>{new Date(entry.created_at).toLocaleTimeString()}</EntryRow>
               </EntryCard>
             ))}
           </div>

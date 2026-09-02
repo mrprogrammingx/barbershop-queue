@@ -1,3 +1,5 @@
+import { useLanguage } from "../../lib/i18n/LanguageContext";
+
 export function Card({ title, children, className = "" }) {
   return (
     <section className={`rounded-2xl border border-charcoal-lighter bg-charcoal p-6 ${className}`}>
@@ -47,18 +49,11 @@ const STATUS_STYLES = {
   no_show: "text-red-400",
 };
 
-const STATUS_LABELS = {
-  waiting: "Waiting",
-  next: "Processing",
-  in_progress: "Processing",
-  done: "Done",
-  no_show: "No Show",
-};
-
 export function StatusPill({ status }) {
+  const { t } = useLanguage();
   return (
     <span className={`text-sm font-medium capitalize ${STATUS_STYLES[status] || "text-cream"}`}>
-      {STATUS_LABELS[status] || status.replace("_", " ")}
+      {t(`adminStatus.${status}`)}
     </span>
   );
 }
@@ -66,6 +61,7 @@ export function StatusPill({ status }) {
 // Looks like a plain status pill, but is a native <select> underneath so tapping
 // the status itself opens the change options — no separate action buttons needed.
 export function StatusSelect({ status, onChange }) {
+  const { t } = useLanguage();
   const actionable = ["done", "no_show"];
   const options = actionable.includes(status) ? actionable : [status, ...actionable];
   return (
@@ -80,7 +76,7 @@ export function StatusSelect({ status, onChange }) {
     >
       {options.map((value) => (
         <option key={value} value={value} className="bg-charcoal text-cream">
-          {STATUS_LABELS[value] || value}
+          {t(`adminStatus.${value}`)}
         </option>
       ))}
     </select>

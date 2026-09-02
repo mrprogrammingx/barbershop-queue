@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" });
+import { useLanguage } from "../lib/i18n/LanguageContext";
+import { formatMonthYear, weekdayNarrowLabels } from "../lib/i18n/dateFormat";
 
 function toISODate(d) {
   const offset = d.getTimezoneOffset();
@@ -15,6 +14,9 @@ function sameDay(a, b) {
 }
 
 export default function DateCalendar({ value, onChange, minDate }) {
+  const { lang, t } = useLanguage();
+  const weekdayLabels = weekdayNarrowLabels(lang);
+
   const selected = parseISO(value);
   const min = minDate ? parseISO(minDate) : startOfDay(new Date());
   const [viewDate, setViewDate] = useState(new Date(selected.getFullYear(), selected.getMonth(), 1));
@@ -39,18 +41,18 @@ export default function DateCalendar({ value, onChange, minDate }) {
           type="button"
           onClick={() => canGoPrev && setViewDate(new Date(year, month - 1, 1))}
           disabled={!canGoPrev}
-          aria-label="Previous month"
+          aria-label={t("picker.previousMonth")}
           className="rounded-md p-1 text-cream/70 transition-colors hover:text-gold disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronLeft size={18} />
         </button>
         <span className="text-sm font-semibold uppercase tracking-wider text-cream">
-          {MONTH_FORMATTER.format(viewDate)}
+          {formatMonthYear(viewDate, lang)}
         </span>
         <button
           type="button"
           onClick={() => setViewDate(new Date(year, month + 1, 1))}
-          aria-label="Next month"
+          aria-label={t("picker.nextMonth")}
           className="rounded-md p-1 text-cream/70 transition-colors hover:text-gold"
         >
           <ChevronRight size={18} />
@@ -58,7 +60,7 @@ export default function DateCalendar({ value, onChange, minDate }) {
       </div>
 
       <div className="grid grid-cols-7 gap-y-1 text-center">
-        {WEEKDAY_LABELS.map((label, i) => (
+        {weekdayLabels.map((label, i) => (
           <span key={i} className="text-[10px] font-semibold uppercase tracking-wider text-cream-dim">
             {label}
           </span>

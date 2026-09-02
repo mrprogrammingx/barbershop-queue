@@ -1,19 +1,8 @@
 import { useState } from "react";
 import { Calendar } from "lucide-react";
 import DateCalendar from "../DateCalendar";
-
-const DISPLAY_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
-function formatDisplay(iso) {
-  if (!iso) return "Select a date";
-  const [y, m, d] = iso.split("-").map(Number);
-  return DISPLAY_FORMATTER.format(new Date(y, m - 1, d));
-}
+import { useLanguage } from "../../lib/i18n/LanguageContext";
+import { formatFullDate } from "../../lib/i18n/dateFormat";
 
 function todayIso() {
   const d = new Date();
@@ -21,14 +10,21 @@ function todayIso() {
 }
 
 export default function DatePickerField({ value, onChange, minDate, label }) {
+  const { t, lang } = useLanguage();
   const [open, setOpen] = useState(false);
+
+  function formatDisplay(iso) {
+    if (!iso) return t("picker.selectDate");
+    const [y, m, d] = iso.split("-").map(Number);
+    return formatFullDate(new Date(y, m - 1, d), lang);
+  }
 
   return (
     <div className="relative inline-block">
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={label || "Choose date"}
+        aria-label={label || t("picker.chooseDate")}
         className="flex items-center gap-2 rounded-lg border border-charcoal-lighter bg-ink px-3 py-2 text-sm text-cream transition-colors hover:border-gold/50 focus:border-gold focus:outline-none"
       >
         <Calendar size={16} className="text-gold" />

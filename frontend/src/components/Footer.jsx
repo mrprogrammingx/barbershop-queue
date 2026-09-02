@@ -2,8 +2,13 @@ import { Link } from "react-router-dom";
 import { MapPin, Mail, Phone } from "lucide-react";
 import { InstagramIcon, TelegramIcon, WhatsAppIcon } from "./icons";
 import { SHOP } from "../lib/content";
+import { useLanguage } from "../lib/i18n/LanguageContext";
+
+const DAY_KEYS = { Monday: "day.mon", Tuesday: "day.tue", Wednesday: "day.wed", Thursday: "day.thu", Friday: "day.fri", Saturday: "day.sat", Sunday: "day.sun" };
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="border-t border-charcoal-lighter bg-charcoal">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-10">
@@ -12,9 +17,7 @@ export default function Footer() {
             <Link to="/" className="font-display text-3xl text-cream">
               Parsa <span className="text-gold">Barber</span>
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">
-              Premium fades, beard sculpting, and hot towel shaves. Sharp cuts, no shortcuts.
-            </p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream-dim">{t("footer.tagline")}</p>
             <div className="mt-6 flex gap-4">
               <a
                 href={SHOP.instagram}
@@ -47,19 +50,21 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="eyebrow mb-5">Hours</h4>
+            <h4 className="eyebrow mb-5">{t("footer.hours")}</h4>
             <ul className="space-y-2 text-sm text-cream-dim">
               {SHOP.hours.map((h) => (
                 <li key={h.day} className="flex justify-between gap-6">
-                  <span>{h.day}</span>
-                  <span className={h.time === "Closed" ? "text-cream-dim" : "text-cream/90"}>{h.time}</span>
+                  <span>{t(DAY_KEYS[h.day])}</span>
+                  <span className={h.time === "Closed" ? "text-cream-dim" : "text-cream/90"}>
+                    {h.time === "Closed" ? t("day.closed") : h.time}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="eyebrow mb-5">Visit</h4>
+            <h4 className="eyebrow mb-5">{t("footer.visit")}</h4>
             <ul className="space-y-4 text-sm text-cream-dim">
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="mt-0.5 shrink-0 text-gold" />
@@ -94,8 +99,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-charcoal-lighter pt-8 text-xs text-cream-dim/70 md:flex-row">
-          <p>&copy; {new Date().getFullYear()} Parsa Barber. All rights reserved.</p>
-          <p>Crafted for guys who take their fade seriously.</p>
+          <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>
+          <p>{t("footer.tagline2")}</p>
         </div>
       </div>
     </footer>

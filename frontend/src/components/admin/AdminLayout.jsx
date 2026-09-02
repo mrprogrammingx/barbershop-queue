@@ -3,17 +3,20 @@ import { NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import { LayoutDashboard, History, Users, Settings, LogOut } from "lucide-react";
 import { getMe, logout } from "../../lib/adminApi";
 import { AdminUIProvider } from "./AdminUIContext";
-
-const LINKS = [
-  { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/admin/history", label: "History", icon: History },
-  { to: "/admin/customers", label: "Customers", icon: Users },
-  { to: "/admin/settings", label: "Settings", icon: Settings },
-];
+import { useLanguage } from "../../lib/i18n/LanguageContext";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 export default function AdminLayout() {
+  const { t } = useLanguage();
   const location = useLocation();
   const [status, setStatus] = useState("checking"); // checking | in | out
+
+  const LINKS = [
+    { to: "/admin/dashboard", label: t("admin.nav.dashboard"), icon: LayoutDashboard },
+    { to: "/admin/history", label: t("admin.nav.history"), icon: History },
+    { to: "/admin/customers", label: t("admin.nav.customers"), icon: Users },
+    { to: "/admin/settings", label: t("admin.nav.settings"), icon: Settings },
+  ];
 
   useEffect(() => {
     let cancelled = false;
@@ -30,7 +33,7 @@ export default function AdminLayout() {
   }, [location.pathname]);
 
   if (status === "checking") {
-    return <div className="min-h-screen bg-ink px-6 py-24 text-center text-cream/60">Checking session…</div>;
+    return <div className="min-h-screen bg-ink px-6 py-24 text-center text-cream/60">{t("admin.checkingSession")}</div>;
   }
 
   if (status === "out") {
@@ -48,7 +51,7 @@ export default function AdminLayout() {
       <header className="border-b border-charcoal-lighter px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <span className="font-display text-xl tracking-wide">
-            Parsa <span className="text-gold">Admin</span>
+            {t("admin.brandPrefix")} <span className="text-gold">{t("admin.brandSuffix")}</span>
           </span>
           <nav className="hidden items-center gap-6 md:flex">
             {LINKS.map((link) => (
@@ -64,22 +67,26 @@ export default function AdminLayout() {
                 {link.label}
               </NavLink>
             ))}
+            <LanguageSwitcher />
             <button
               type="button"
               onClick={handleLogout}
               className="font-body text-sm font-medium uppercase tracking-wider text-cream/50 underline transition-colors hover:text-gold"
             >
-              Log Out
+              {t("admin.logOut")}
             </button>
           </nav>
-          <button
-            type="button"
-            onClick={handleLogout}
-            aria-label="Log out"
-            className="text-cream/50 transition-colors hover:text-gold md:hidden"
-          >
-            <LogOut size={20} />
-          </button>
+          <div className="flex items-center gap-3 md:hidden">
+            <LanguageSwitcher />
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label={t("admin.logOut")}
+              className="text-cream/50 transition-colors hover:text-gold"
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-10 pb-28 md:pb-10">

@@ -15,6 +15,31 @@
   --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Persian and Armenian glyphs aren't in Bebas Neue/Inter — swap to fonts that
+   cover them, and drop the uppercase/wide-tracking treatment that's built
+   for the Latin headline type but reads poorly in these scripts. */
+html[lang="fa"] {
+  --font-display: "Vazirmatn", sans-serif;
+  --font-body: "Vazirmatn", sans-serif;
+}
+html[lang="hy"] {
+  --font-display: "Noto Sans Armenian", sans-serif;
+  --font-body: "Noto Sans Armenian", sans-serif;
+}
+html[lang="fa"] .eyebrow,
+html[lang="hy"] .eyebrow,
+html[lang="fa"] nav a,
+html[lang="hy"] nav a,
+html[lang="fa"] .btn-gold,
+html[lang="hy"] .btn-gold,
+html[lang="fa"] .btn-outline,
+html[lang="hy"] .btn-outline,
+html[lang="fa"] button,
+html[lang="hy"] button {
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 @layer base {
   * {
     border-color: var(--color-charcoal-lighter);

@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { HERO_IMAGE } from "../lib/content";
-
-const HEADLINE = "SHARP. BOLD. TIMELESS.";
+import { useLanguage } from "../lib/i18n/LanguageContext";
 
 export default function Hero() {
+  const { t } = useLanguage();
+  const HEADLINE = [t("hero.word1"), t("hero.word2"), t("hero.word3")];
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "35%"]);
@@ -27,11 +28,11 @@ export default function Hero() {
           transition={{ delay: 0.2, duration: 0.6 }}
           className="eyebrow mb-6"
         >
-          Yerevan &middot; Chairs open daily
+          {t("hero.eyebrow")}
         </motion.p>
 
         <h1 className="font-display text-[15vw] leading-[0.85] text-cream sm:text-[10vw] md:text-[7.5vw]">
-          {HEADLINE.split(" ").map((word, i) => (
+          {HEADLINE.map((word, i) => (
             <span key={word} className="block overflow-hidden">
               <motion.span
                 initial={{ y: "110%" }}
@@ -51,7 +52,7 @@ export default function Hero() {
           transition={{ delay: 0.7, duration: 0.6 }}
           className="mt-8 max-w-md text-base text-cream/80 md:text-lg"
         >
-          Precision fades, straight-razor shaves, and beard work — booked online in under a minute, no waiting room required.
+          {t("hero.subtitle")}
         </motion.p>
 
         <motion.div
@@ -61,10 +62,10 @@ export default function Hero() {
           className="mt-10 flex flex-wrap items-center gap-5"
         >
           <Link to="/booking" className="btn-gold">
-            Book Now
+            {t("nav.bookNow")}
           </Link>
           <Link to="/contact" className="btn-outline">
-            Contact Us
+            {t("nav.contactUs")}
           </Link>
         </motion.div>
       </motion.div>

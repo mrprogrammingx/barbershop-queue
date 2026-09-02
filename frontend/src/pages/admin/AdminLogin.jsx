@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { login } from "../../lib/adminApi";
 import { inputClass, buttonClass } from "../../components/admin/ui";
+import { useLanguage } from "../../lib/i18n/LanguageContext";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 export default function AdminLogin() {
+  const { t, dir } = useLanguage();
+  const BackIcon = dir === "rtl" ? ArrowRight : ArrowLeft;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = searchParams.get("next") || "/admin/dashboard";
@@ -21,7 +25,7 @@ export default function AdminLogin() {
       await login(username, password);
       navigate(next, { replace: true });
     } catch (err) {
-      setError(err.message || "Invalid username or password.");
+      setError(err.message || t("admin.login.invalidCredentials"));
     } finally {
       setSubmitting(false);
     }
@@ -30,14 +34,17 @@ export default function AdminLogin() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-ink px-6 py-24 text-cream">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-charcoal-lighter bg-charcoal p-8">
-        <h1 className="mb-6 font-display text-2xl tracking-wide">
-          Staff <span className="text-gold">Login</span>
-        </h1>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <h1 className="font-display text-2xl tracking-wide">
+            {t("admin.login.titlePrefix")} <span className="text-gold">{t("admin.login.titleSuffix")}</span>
+          </h1>
+          <LanguageSwitcher />
+        </div>
         {error && <p className="mb-4 rounded-lg bg-red-950/40 px-3 py-2 text-sm text-red-300">{error}</p>}
         <div className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Username"
+            placeholder={t("admin.login.username")}
             required
             autoFocus
             value={username}
@@ -46,14 +53,14 @@ export default function AdminLogin() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder={t("admin.login.password")}
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={inputClass}
           />
           <button type="submit" disabled={submitting} className={buttonClass}>
-            {submitting ? "Logging in…" : "Log In"}
+            {submitting ? t("admin.login.loggingIn") : t("admin.login.logIn")}
           </button>
         </div>
 
@@ -61,8 +68,8 @@ export default function AdminLogin() {
           to="/"
           className="mt-6 flex items-center justify-center gap-2 text-sm text-cream/50 transition-colors hover:text-gold"
         >
-          <ArrowLeft size={14} />
-          View site as a customer
+          <BackIcon size={14} />
+          {t("admin.login.viewAsCustomer")}
         </Link>
       </form>
     </div>

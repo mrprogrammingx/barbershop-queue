@@ -217,6 +217,7 @@ const en = {
 
   "picker.selectDate": "Select a date",
   "picker.chooseDate": "Choose date",
+  "picker.close": "Close",
   "picker.hour": "Hour",
   "picker.minute": "Minute",
   "picker.previousMonth": "Previous month",
@@ -414,6 +415,7 @@ const fa = {
 
   "picker.selectDate": "انتخاب تاریخ",
   "picker.chooseDate": "انتخاب تاریخ",
+  "picker.close": "بستن",
   "picker.hour": "ساعت",
   "picker.minute": "دقیقه",
   "picker.previousMonth": "ماه قبل",
@@ -611,6 +613,7 @@ const hy = {
 
   "picker.selectDate": "Ընտրեք ամսաթիվ",
   "picker.chooseDate": "Ընտրել ամսաթիվ",
+  "picker.close": "Փակել",
   "picker.hour": "Ժամ",
   "picker.minute": "Րոպե",
   "picker.previousMonth": "Նախորդ ամիս",

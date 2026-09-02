@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, X } from "lucide-react";
 import DateCalendar from "../DateCalendar";
 import { useLanguage } from "../../lib/i18n/LanguageContext";
 import { formatFullDate } from "../../lib/i18n/dateFormat";
@@ -36,7 +36,15 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4"
           onClick={() => setOpen(false)}
         >
-          <div className="w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={t("picker.close")}
+              className="touch-manipulation absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-charcoal-lighter bg-charcoal text-cream/70 shadow-lg transition-colors hover:border-gold/50 hover:text-gold"
+            >
+              <X size={16} />
+            </button>
             <DateCalendar
               value={value || todayIso()}
               minDate={minDate}

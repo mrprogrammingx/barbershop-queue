@@ -36,15 +36,17 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4"
           onClick={() => setOpen(false)}
         >
-          <div className="relative w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label={t("picker.close")}
-              className="touch-manipulation absolute -top-3 -right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-charcoal-lighter bg-charcoal text-cream/70 shadow-lg transition-colors hover:border-gold/50 hover:text-gold"
-            >
-              <X size={16} />
-            </button>
+          <div className="w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="touch-manipulation flex items-center gap-1.5 rounded-full border border-charcoal-lighter bg-charcoal px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-cream/80 shadow-lg transition-colors hover:border-gold/50 hover:text-gold"
+              >
+                <X size={14} />
+                {t("picker.close")}
+              </button>
+            </div>
             <DateCalendar
               value={value || todayIso()}
               minDate={minDate}

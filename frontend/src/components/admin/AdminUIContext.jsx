@@ -47,7 +47,7 @@ export function AdminUIProvider({ children }) {
       </div>
 
       {confirmState && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 px-4 backdrop-blur-sm animate-[fade-in_0.15s_ease-out]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/90 px-4 animate-[fade-in_0.15s_ease-out]">
           <div className="w-full max-w-sm rounded-2xl border border-charcoal-lighter bg-charcoal p-6 shadow-2xl animate-[modal-in_0.2s_ease-out]">
             <p className="mb-6 text-sm leading-relaxed text-cream">{confirmState.message}</p>
             <div className="flex justify-end gap-3">

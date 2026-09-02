@@ -32,7 +32,7 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/95 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/95"
         >
           <button
             aria-label={t("lightbox.close")}

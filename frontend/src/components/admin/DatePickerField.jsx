@@ -33,7 +33,7 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4"
           onClick={() => setOpen(false)}
         >
           <div className="w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>

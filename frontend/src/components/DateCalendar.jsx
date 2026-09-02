@@ -42,7 +42,7 @@ export default function DateCalendar({ value, onChange, minDate }) {
           onClick={() => canGoPrev && setViewDate(new Date(year, month - 1, 1))}
           disabled={!canGoPrev}
           aria-label={t("picker.previousMonth")}
-          className="rounded-md p-1 text-cream/70 transition-colors hover:text-gold disabled:cursor-not-allowed disabled:opacity-30"
+          className="touch-manipulation rounded-md p-1 text-cream/70 transition-colors hover:text-gold disabled:cursor-not-allowed disabled:opacity-30"
         >
           <ChevronLeft size={18} />
         </button>
@@ -53,7 +53,7 @@ export default function DateCalendar({ value, onChange, minDate }) {
           type="button"
           onClick={() => setViewDate(new Date(year, month + 1, 1))}
           aria-label={t("picker.nextMonth")}
-          className="rounded-md p-1 text-cream/70 transition-colors hover:text-gold"
+          className="touch-manipulation rounded-md p-1 text-cream/70 transition-colors hover:text-gold"
         >
           <ChevronRight size={18} />
         </button>
@@ -79,7 +79,7 @@ export default function DateCalendar({ value, onChange, minDate }) {
               type="button"
               disabled={isPast}
               onClick={() => onChange(toISODate(day))}
-              className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors ${
+              className={`touch-manipulation mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors ${
                 isSelected
                   ? "bg-gold font-semibold text-ink"
                   : isPast

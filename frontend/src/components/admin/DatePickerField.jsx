@@ -25,7 +25,7 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={label || t("picker.chooseDate")}
-        className="flex items-center gap-2 rounded-lg border border-charcoal-lighter bg-ink px-3 py-2 text-sm text-cream transition-colors hover:border-gold/50 focus:border-gold focus:outline-none"
+        className="touch-manipulation flex items-center gap-2 rounded-lg border border-charcoal-lighter bg-ink px-3 py-2 text-sm text-cream transition-colors hover:border-gold/50 focus:border-gold focus:outline-none"
       >
         <Calendar size={16} className="text-gold" />
         {formatDisplay(value)}

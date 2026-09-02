@@ -50,10 +50,10 @@ export default function AdminDashboard() {
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-2xl tracking-wide">{t("admin.dashboard.title")}</h1>
 
-      <label className="flex items-center gap-2 text-sm text-cream/70">
-        {t("admin.field.date")}
+      <div className="flex items-center gap-2 text-sm text-cream/70">
+        <span>{t("admin.field.date")}</span>
         <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
-      </label>
+      </div>
 
       {entries.length === 0 ? (
         <p className="text-cream/50">{t("admin.dashboard.noEntries")}</p>

@@ -260,10 +260,10 @@ export default function AdminSettings() {
       </Card>
 
       <Card title={t("admin.settings.manageTimeSlots")}>
-        <label className="mb-3 flex items-center gap-2 text-sm text-cream/70">
-          {t("admin.field.date")}
+        <div className="mb-3 flex items-center gap-2 text-sm text-cream/70">
+          <span>{t("admin.field.date")}</span>
           <DatePickerField value={blockDate} minDate={todayIso()} onChange={setBlockDate} />
-        </label>
+        </div>
         <p className="mb-3 max-w-md text-sm text-cream/60">{t("admin.settings.manageTimeSlotsDesc")}</p>
         <div className="mb-4 flex max-w-xl flex-wrap gap-2">
           {slots.map((slot) => {

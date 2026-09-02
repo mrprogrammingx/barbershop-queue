@@ -38,10 +38,10 @@ export default function AdminHistory() {
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-2xl tracking-wide">{t("admin.history.title")}</h1>
 
-      <label className="flex items-center gap-2 text-sm text-cream/70">
-        {t("admin.field.date")}
+      <div className="flex items-center gap-2 text-sm text-cream/70">
+        <span>{t("admin.field.date")}</span>
         <DatePickerField value={date} minDate="2000-01-01" onChange={setDate} />
-      </label>
+      </div>
       <p className="text-sm text-cream/50">
         {dates.length > 0 ? t("admin.history.datesWithHistory", { dates: dates.join(", ") }) : t("admin.history.noHistoryYet")}
       </p>

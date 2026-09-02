@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, X } from "lucide-react";
 import DateCalendar from "../DateCalendar";
 import { useLanguage } from "../../lib/i18n/LanguageContext";
@@ -34,6 +35,16 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
     };
   }, [open]);
 
+  // Close on Escape.
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
   return (
     <div className="relative inline-block">
       <button
@@ -46,33 +57,43 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
         {formatDisplay(value)}
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4"
-          onClick={() => setOpen(false)}
-        >
-          <div className="w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="touch-manipulation flex items-center gap-1.5 rounded-full border border-charcoal-lighter bg-charcoal px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-cream/80 shadow-lg transition-colors hover:border-gold/50 hover:text-gold"
-              >
-                <X size={14} />
-                {t("picker.close")}
-              </button>
+      {open &&
+        createPortal(
+          // Rendered through a portal (not as a DOM descendant of the call
+          // site's wrapper) so a labelable ancestor can't re-dispatch taps on
+          // these controls back to the trigger button. iOS Safari does exactly
+          // that for interactive content nested inside a <label>, which made
+          // the close button and backdrop immediately re-open the popup.
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={label || t("picker.chooseDate")}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4"
+            onClick={() => setOpen(false)}
+          >
+            <div className="w-full max-w-xs shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="mb-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="touch-manipulation flex items-center gap-1.5 rounded-full border border-charcoal-lighter bg-charcoal px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-cream/80 shadow-lg transition-colors hover:border-gold/50 hover:text-gold"
+                >
+                  <X size={14} />
+                  {t("picker.close")}
+                </button>
+              </div>
+              <DateCalendar
+                value={value || todayIso()}
+                minDate={minDate}
+                onChange={(iso) => {
+                  onChange(iso);
+                  setOpen(false);
+                }}
+              />
             </div>
-            <DateCalendar
-              value={value || todayIso()}
-              minDate={minDate}
-              onChange={(iso) => {
-                onChange(iso);
-                setOpen(false);
-              }}
-            />
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

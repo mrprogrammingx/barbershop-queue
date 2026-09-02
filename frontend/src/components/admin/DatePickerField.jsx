@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, X } from "lucide-react";
 import DateCalendar from "../DateCalendar";
 import { useLanguage } from "../../lib/i18n/LanguageContext";
@@ -18,6 +18,21 @@ export default function DatePickerField({ value, onChange, minDate, label }) {
     const [y, m, d] = iso.split("-").map(Number);
     return formatFullDate(new Date(y, m - 1, d), lang);
   }
+
+  // Lock background scroll while the popup is open. Mobile Safari can
+  // resize the visual viewport (its address bar collapsing/expanding) while
+  // the page behind a `fixed` overlay is still scrollable, which shifts
+  // where touches actually land relative to what's on screen — taps on the
+  // popup's own controls then silently miss. Locking scroll keeps the
+  // viewport stable for as long as the popup is up.
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   return (
     <div className="relative inline-block">

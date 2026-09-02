@@ -24,6 +24,17 @@ export default function Lightbox({ images, index, onClose, onNavigate }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
+  // Locks background scroll so mobile Safari's viewport doesn't shift under
+  // a fixed overlay and throw off tap targets (see DatePickerField).
+  useEffect(() => {
+    if (index === null) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [index]);
+
   return (
     <AnimatePresence>
       {image && (

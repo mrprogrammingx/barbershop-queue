@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { buttonClass, buttonOutlineClass } from "./ui";
 import { useLanguage } from "../../lib/i18n/LanguageContext";
 
@@ -27,6 +27,17 @@ export function AdminUIProvider({ children }) {
     confirmState?.resolve(result);
     setConfirmState(null);
   }
+
+  // See DatePickerField for why: locks background scroll so mobile Safari's
+  // viewport doesn't shift under a fixed overlay and throw off tap targets.
+  useEffect(() => {
+    if (!confirmState) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [confirmState]);
 
   return (
     <AdminUIContext.Provider value={{ toast, confirm }}>
